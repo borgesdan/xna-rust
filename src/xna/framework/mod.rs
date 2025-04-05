@@ -1,4 +1,4 @@
-use crate::xna::framework::graphics::IPackedVector;
+use crate::xna::framework::graphics::{IPackedVector, PackUtils};
 pub mod graphics;
 
 #[derive(Default)]
@@ -185,9 +185,106 @@ impl Rectangle {
     }
 }
 
+impl IPackedVector for Color {
+    fn to_vector4(&self) -> Vector4 {
+        todo!()
+    }
+
+    fn set_vector4(&self, vector4: &Vector4) {
+        todo!()
+    }
+}
+
 impl Color {
     pub fn from_packed_value(packed_value: u32) -> Color {
         Color { packed_value }
+    }
+
+    pub fn from_rgb(r: i32, g: i32, b: i32) -> Color {
+        let r1;
+        let g1;
+        let b1;
+
+        if ((r | g  | b) & -256) != 0 {
+            r1 = Self::clamp_to_byte64(r as u64);
+            g1 = Self::clamp_to_byte64(g as u64);
+            b1 = Self::clamp_to_byte64(b as u64);
+        } else {
+            r1 = r;
+            g1 = g;
+            b1 = b;
+        }
+
+        let g2 = g1 << 8;
+        let b2 = b1 << 16;
+
+        let packed_value = (r1 | g2 | b2 | -16777216) as u32;
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_rgba(r: i32, g: i32, b: i32, a: i32) -> Color {
+        let r1;
+        let g1;
+        let b1;
+        let a1;
+
+        if ((r | g  | b | a) & -256) != 0 {
+            r1 = Self::clamp_to_byte64(r as u64);
+            g1 = Self::clamp_to_byte64(g as u64);
+            b1 = Self::clamp_to_byte64(b as u64);
+            a1 = Self::clamp_to_byte64(a as u64);
+        } else {
+            r1 = r;
+            g1 = g;
+            b1 = b;
+            a1 = a;
+        }
+
+        let g2 = g1 << 8;
+        let b2 = b1 << 16;
+        let a2 = a1 << 24;
+
+        let packed_value = (r1 | g2 | b2 | a2) as u32;
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_float_rgb(r: f32, g: f32, b: f32) -> Color {
+        let packed_value = Self::pack_helper(r, g, b, 1.0);
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_float_rgba(r: f32, g: f32, b: f32, a: f32) -> Color {
+        let packed_value = Self::pack_helper(r, g, b, a);
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_vector3(vector3: Vector3) -> Color {
+        let packed_value = Self::pack_helper(vector3.x, vector3.y, vector3.z, 1.0);
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_vector4(vector4: Vector4) -> Color {
+        let packed_value = Self::pack_helper(vector4.x, vector4.y, vector4.z, vector4.w);
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_nom_premultiplied(vector: Vector4) -> Color {
+        let packed_value = Self::pack_helper(vector.x * vector.w, vector.y * vector.w, vector.z * vector.w, vector.w);
+        Self::from_packed_value(packed_value)
+    }
+
+    pub fn from_nom_premultiplied_rgba(r: i32, g: i32, b: i32, a: i32) -> Color {
+        let r1 = Self::clamp_to_byte64((r * a) as u64 / u8::MAX  as u64);
+        let g1 = Self::clamp_to_byte64((g * a) as u64 / u8::MAX as u64);
+        let b1 = Self::clamp_to_byte64((b * a) as u64 / u8::MAX as u64);
+        let a1 = Self::clamp_to_byte64(a as u64);
+
+        let g2 = g1 << 8;
+        let b2 = b1 << 16;
+        let a2 = a1 << 24;
+
+        let packed_value = (r1 | g2 | b2 | a2) as u32;
+        Self::from_packed_value(packed_value)
     }
 
     pub fn r(&self)
@@ -201,6 +298,30 @@ impl Color {
 
     pub fn a(&self)
              -> u8 { (self.packed_value >> 24) as u8 }
+
+    pub fn clamp_to_byte64(value: u64) -> i32 {
+        if value < 0{
+            return 0;
+        }
+
+        if value > u8::MAX as u64{
+            return u8::MAX as i32;
+        }
+
+        value as i32
+    }
+
+    pub fn pack_helper(vector_x: f32, vector_y: f32, vector_z: f32, vector_w: f32) -> u32 {
+        PackUtils::pack_unorm(u8::MAX as f32, vector_x)
+            | PackUtils::pack_unorm(u8::MAX as f32, vector_y) << 8
+            | PackUtils::pack_unorm(u8::MAX as f32, vector_z) << 16
+            | PackUtils::pack_unorm(u8::MAX as f32, vector_w) << 24
+    }
+
+
+    //
+    // COLORS
+    //
 
     pub fn transparent() -> Color { Color::from_packed_value(0) }
 
@@ -484,17 +605,3 @@ impl Color {
 
     pub fn yellow_green() -> Color { Color::from_packed_value(4281519514) }
 }
-
-impl IPackedVector for Color {
-    fn to_vector4(&self) -> Vector4 {
-        todo!()
-    }
-
-    fn from_vector4(vector4: &Vector4) {
-        todo!()
-    }
-}
-
-
-
-

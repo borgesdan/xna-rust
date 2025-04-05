@@ -2,12 +2,12 @@ use crate::xna::framework::Vector4;
 
 pub trait IPackedVector {
     fn to_vector4(&self) -> Vector4;
-    fn from_vector4(vector4: &Vector4);
+    fn set_vector4(&self, vector4: &Vector4);
 }
 
 pub trait ITPackedVector<TPacked>{
     fn packed_value(&self) -> TPacked;
-    fn set_packed_value(value: &TPacked);
+    fn set_packed_value(&self, value: &TPacked);
 }
 
 pub struct PackUtils {}
@@ -39,7 +39,7 @@ impl PackUtils {
 
     pub fn unpack_snorm(bitmask: u32, value: u32) -> f32 {
         let num1 = bitmask + 1u32 >> 1;
-        let mut value2: u32;
+        let value2: u32;
 
         if((value as i32) & (num1 as i32)) != 0 {
             if (value as i32) & (bitmask as i32) == num1 as i32 {
