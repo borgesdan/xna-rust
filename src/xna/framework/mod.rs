@@ -189,7 +189,12 @@ impl Rectangle {
 
 impl IPackedVector for Color {
     fn to_vector4(&self) -> Vector4 {
-        todo!()
+        let x = PackUtils::unpack_unorm(u8::MAX as u32, self.packed_value);
+        let y = PackUtils::unpack_unorm(u8::MAX as u32, self.packed_value >> 8);
+        let z = PackUtils::unpack_unorm(u8::MAX as u32, self.packed_value >> 16);
+        let w = PackUtils::unpack_unorm(u8::MAX as u32, self.packed_value >> 24);
+
+        Vector4 {x, y, z, w}
     }
 }
 

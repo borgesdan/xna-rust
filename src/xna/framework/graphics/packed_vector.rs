@@ -1,4 +1,4 @@
-use crate::xna::framework::Vector4;
+use crate::xna::framework::{Vector3, Vector4};
 
 pub trait IPackedVector {
     fn to_vector4(&self) -> Vector4;
@@ -9,6 +9,11 @@ pub struct PackUtils {}
 #[derive(Default)]
 pub struct Alpha8 {
     packed_value: u8,
+}
+
+#[derive(Default)]
+pub struct Bgr565 {
+    packed_value: u16,
 }
 
 impl PackUtils {
@@ -100,6 +105,45 @@ impl IPackedVector for Alpha8 {
             y: 0.0,
             z: 0.0,
             w: alpha,
+        }
+    }
+}
+
+impl Bgr565 {
+    pub fn from_xyz(x: f32, y: f32, z: f32) -> Bgr565 {
+        let packed_value = (PackUtils::pack_unorm(31.0, x) << 11
+        | PackUtils::pack_unorm(63.0, y) << 5
+        | PackUtils::pack_unorm(31.0, z)) as u16;
+
+        Bgr565{ packed_value }
+    }
+
+    pub fn from_vector3(vector: Vector3) -> Bgr565 {
+        let packed_value = (PackUtils::pack_unorm(31.0, vector.x) << 11
+            | PackUtils::pack_unorm(63.0, vector.y) << 5
+            | PackUtils::pack_unorm(31.0, vector.z)) as u16;
+
+        Bgr565{ packed_value }
+    }
+
+    pub fn to_vector3(&self) -> Vector3 {
+        let x = PackUtils::unpack_unorm(31, self.packed_value as u32 >> 11);
+        let y= PackUtils::unpack_unorm(63, self.packed_value as u32 >> 5);
+        let z= PackUtils::unpack_unorm(31, self.packed_value as u32);
+
+        Vector3{ x, y, z}
+    }
+}
+
+impl IPackedVector for Bgr565 {
+    fn to_vector4(&self) -> Vector4 {
+        let vector = self.to_vector3();
+
+        Vector4 {
+            x: vector.x,
+            y: vector.y,
+            z: vector.z,
+            w: 1.0,
         }
     }
 }
