@@ -1,5 +1,7 @@
-use crate::xna::framework::graphics::{IPackedVector, PackUtils};
 pub mod graphics;
+
+use crate::xna::framework::graphics::packed_vector::PackUtils;
+use crate::xna::framework::graphics::packed_vector::IPackedVector;
 
 #[derive(Default)]
 pub struct Point {
@@ -187,10 +189,6 @@ impl Rectangle {
 
 impl IPackedVector for Color {
     fn to_vector4(&self) -> Vector4 {
-        todo!()
-    }
-
-    fn set_vector4(&self, vector4: &Vector4) {
         todo!()
     }
 }
