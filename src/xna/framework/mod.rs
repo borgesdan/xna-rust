@@ -48,7 +48,7 @@ pub struct Quaternion {
 
 #[derive(Default)]
 pub struct Color {
-    packed_value: u32,
+    pub packed_value: u32,
 }
 
 #[derive(Default)]
@@ -187,6 +187,10 @@ impl Rectangle {
     }
 }
 
+//
+// COLOR
+//
+
 impl IPackedVector for Color {
     fn to_vector4(&self) -> Vector4 {
         let x = PackUtils::unpack_unorm(u8::MAX as u32, self.packed_value);
@@ -293,14 +297,30 @@ impl Color {
     pub fn r(&self)
              -> u8 { self.packed_value as u8 }
 
+    pub fn set_r(&mut self, value: u8) {
+        self.packed_value = self.packed_value & & 4294967040u32 | value as u32;
+    }
+
     pub fn g(&self)
              -> u8 { (self.packed_value >> 8) as u8 }
+
+    pub fn set_g(&mut self, value: u8) {
+        self.packed_value = ((self.packed_value as i32 & -65281) | (value as i32) << 8) as u32;
+    }
 
     pub fn b(&self)
              -> u8 { (self.packed_value >> 16) as u8 }
 
+    pub fn set_b(&mut self, value: u8) {
+        self.packed_value = ((self.packed_value as i32 & -16711681) | (value as i32) << 16) as u32;
+    }
+
     pub fn a(&self)
              -> u8 { (self.packed_value >> 24) as u8 }
+
+    pub fn set_a(&mut self, value: u8) {
+        self.packed_value = ((self.packed_value as i32 & 16777215) | (value as i32) << 24) as u32;
+    }
 
     pub fn clamp_to_byte64(value: u64) -> i32 {
         if value < 0{
@@ -314,13 +334,75 @@ impl Color {
         value as i32
     }
 
-    pub fn pack_helper(vector_x: f32, vector_y: f32, vector_z: f32, vector_w: f32) -> u32 {
+    pub fn lerp(value1: &Color, value2: &Color, amount: f32) -> Color {
+        let num1 = value1.r() as i32;
+        let num2 = value1.g() as i32;
+        let num3 = value1.b() as i32;
+        let num4 = value1.a() as i32;
+        let num5 = value2.r() as i32;
+        let num6 = value2.g() as i32;
+        let num7 = value2.b() as i32;
+        let num8 = value2.a() as i32;
+        let num9 = PackUtils::pack_unorm(65536.0, amount) as i32;
+        let num10 = num1 + ((num5 - num1) * num9 >> 16);
+        let num11 = num2 + ((num6 - num2) * num9 >> 16);
+        let num12 = num3 + ((num7 - num3) * num9 >> 16);
+        let num13 = num4 + ((num8 - num4) * num9 >> 16);
+        let packed_value = (num10 | num11 << 8 | num12 << 16 | num13 << 24) as u32;
+        Color{ packed_value }
+    }
+
+    pub fn multiply(value: &Color, scale: f32) -> Color {
+        let num1 = value.packed_value;
+        let num2 = value.r() as u32;
+        let num3 = value.g() as u32;
+        let num4 = value.a() as u32;
+        let scale1 = scale * 65536.0;
+        let num5 : u32;
+
+        if scale1 >= 0.0 {
+            if(scale1 <= 16777215.0){
+                num5 = scale as u32;
+            }
+
+            num5 = 16777215u32;
+        } else {
+            num5 = 0;
+        }
+
+        let num6 = num1 * num5 >> 16;
+        let num7 = num2 * num5 >> 16;
+        let num8 = num3 * num5 >> 16;
+        let num9 = num4 * num5 >> 16;
+
+        let num10 : u32;
+        let num11 : u32;
+        let num12 : u32;
+        let num13 : u32;
+
+        if (num6 > u8::MAX as u32){
+            num10 = u8::MAX as u32;
+        } else { num10 = num6}
+        if (num7 > u8::MAX as u32){
+            num11 = u8::MAX as u32;
+        } else { num11 = num7}
+        if (num8 > u8::MAX as u32){
+            num12 = u8::MAX as u32;
+        } else { num12 = num8}
+        if (num9 > u8::MAX as u32){
+            num13 = u8::MAX as u32;
+        } else { num13 = num9}
+
+        let packed_value = ((num10 as i32) | (num11 as i32) << 8 | (num12 as i32) << 16 | (num13 as i32) << 24) as u32;
+        Color { packed_value }
+    }
+
+    fn pack_helper(vector_x: f32, vector_y: f32, vector_z: f32, vector_w: f32) -> u32 {
         PackUtils::pack_unorm(u8::MAX as f32, vector_x)
             | PackUtils::pack_unorm(u8::MAX as f32, vector_y) << 8
             | PackUtils::pack_unorm(u8::MAX as f32, vector_z) << 16
             | PackUtils::pack_unorm(u8::MAX as f32, vector_w) << 24
     }
-
 
     //
     // COLORS
