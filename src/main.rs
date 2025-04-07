@@ -1,7 +1,5 @@
 mod xna;
-use xna::framework::graphics;
 
-use std::ptr::{null, null_mut};
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, GetHandleInformation};
 use windows::Win32::Graphics::Gdi::HBRUSH;
@@ -11,6 +9,7 @@ use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, D
 use crate::xna::framework::Color;
 
 fn main() {
+
     unsafe {
         // Nome da classe da janela
         let class_name = to_wide("MinhaJanelaClass");
