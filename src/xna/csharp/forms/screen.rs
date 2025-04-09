@@ -1,0 +1,74 @@
+use std::mem;
+use windows::core::PCSTR;
+use std::ptr;
+use windows::Win32::Graphics::Gdi::{CreateDCA, HDC, HMONITOR };
+use windows::Win32::Graphics::Gdi::MONITORINFOEXA;
+use windows::Win32::Graphics::Gdi::GetMonitorInfoA;
+use windows::Win32::UI::WindowsAndMessaging::MONITORINFOF_PRIMARY;
+use crate::xna::csharp::{Rectangle, Screen};
+
+impl Screen {
+    pub fn from_monitor(monitor: isize, hdc: isize) -> Self {
+        //TODO: multi monitor support
+
+        let h_monitor = HMONITOR(monitor);
+        let info = Self::get_monitor_info(&h_monitor);
+
+        let bounds = Rectangle::from_ltrb(
+            info.monitorInfo.rcMonitor.left,
+            info.monitorInfo.rcMonitor.top,
+            info.monitorInfo.rcMonitor.right,
+            info.monitorInfo.rcMonitor.bottom
+        );
+
+        let primary = (info.monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0;
+
+        let screen_dc: HDC;
+        let device_name = info.szDevice;
+        let working_area = Rectangle::from_ltrb(
+            info.monitorInfo.rcWork.left,
+            info.monitorInfo.rcWork.top,
+            info.monitorInfo.rcWork.right,
+            info.monitorInfo.rcWork.bottom,
+        );
+
+        if(hdc == 0) {
+            unsafe {
+                let drive_name = PCSTR(ptr::null());
+                let device_name2 = PCSTR(device_name.as_ptr());
+                let output = PCSTR(ptr::null());
+                screen_dc = CreateDCA(device_name2,drive_name, output, None);
+            }
+        }
+
+        Screen {
+            h_monitor: monitor,
+            device_name: String::from_utf8(Vec::from(device_name)).unwrap(),
+            bounds,
+            primary,
+            working_area
+        }
+    }
+
+    pub fn all_screens() -> Vec<Self> {
+        //TODO: get all screens
+        let primary_monitor = 65537;
+        let primary_screen = Screen::from_monitor(primary_monitor, 0);
+        let mut screens = Vec::<Screen>::new();
+        screens.push(primary_screen);
+
+        screens
+    }
+
+    fn get_monitor_info(monitor: &HMONITOR) -> MONITORINFOEXA {
+        let mut monitor_info_exa: MONITORINFOEXA = unsafe { mem::zeroed() };
+        monitor_info_exa.monitorInfo.cbSize = size_of::<MONITORINFOEXA>() as u32;
+
+        unsafe {
+            GetMonitorInfoA(*monitor, &mut monitor_info_exa as *mut _ as *mut _);
+        }
+
+        monitor_info_exa
+    }
+
+}

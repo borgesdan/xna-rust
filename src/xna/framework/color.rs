@@ -173,9 +173,9 @@ impl Color {
         if scale1 >= 0.0 {
             if(scale1 <= 16777215.0){
                 num5 = scale as u32;
+            }else {
+                num5 = 16777215u32;
             }
-
-            num5 = 16777215u32;
         } else {
             num5 = 0;
         }

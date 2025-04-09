@@ -7,8 +7,15 @@ use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetModuleHandleW};
 use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT, WM_QUIT, WS_OVERLAPPEDWINDOW, WINDOW_EX_STYLE};
 
 use crate::xna::framework::Color;
+use crate::xna::csharp::Screen;
 
 fn main() {
+
+    unsafe {
+        let screens = Screen::all_screens();
+
+    }
+
 
     unsafe {
         // Nome da classe da janela
