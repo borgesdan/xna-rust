@@ -21,10 +21,18 @@ impl Screen {
             info.monitorInfo.rcMonitor.bottom
         );
 
-        let primary = (info.monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0;
-
         let screen_dc: HDC;
         let device_name = info.szDevice;
+
+        if(hdc == 0) {
+            unsafe {
+                let driver = PCSTR(ptr::null());
+                let device = PCSTR(device_name.as_ptr());
+                let output = PCSTR(ptr::null());
+                screen_dc = CreateDCA(driver, device, output, None);
+            }
+        }
+
         let working_area = Rectangle::from_ltrb(
             info.monitorInfo.rcWork.left,
             info.monitorInfo.rcWork.top,
@@ -32,14 +40,7 @@ impl Screen {
             info.monitorInfo.rcWork.bottom,
         );
 
-        if(hdc == 0) {
-            unsafe {
-                let drive_name = PCSTR(ptr::null());
-                let device_name2 = PCSTR(device_name.as_ptr());
-                let output = PCSTR(ptr::null());
-                screen_dc = CreateDCA(device_name2,drive_name, output, None);
-            }
-        }
+        let primary = (info.monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0;
 
         Screen {
             h_monitor: monitor,
@@ -61,14 +62,12 @@ impl Screen {
     }
 
     fn get_monitor_info(monitor: &HMONITOR) -> MONITORINFOEXA {
-        let mut monitor_info_exa: MONITORINFOEXA = unsafe { mem::zeroed() };
-        monitor_info_exa.monitorInfo.cbSize = size_of::<MONITORINFOEXA>() as u32;
-
+        let mut monitor_info: MONITORINFOEXA = unsafe { mem::zeroed() };
+        monitor_info.monitorInfo.cbSize = size_of::<MONITORINFOEXA>() as u32;
+        
         unsafe {
-            GetMonitorInfoA(*monitor, &mut monitor_info_exa as *mut _ as *mut _);
+            GetMonitorInfoA(*monitor, &mut monitor_info as *mut _ as *mut _);
+            monitor_info
         }
-
-        monitor_info_exa
     }
-
 }
