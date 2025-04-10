@@ -5,7 +5,8 @@ use windows::Win32::Graphics::Gdi::{CreateDCA, HDC, HMONITOR };
 use windows::Win32::Graphics::Gdi::MONITORINFOEXA;
 use windows::Win32::Graphics::Gdi::GetMonitorInfoA;
 use windows::Win32::UI::WindowsAndMessaging::MONITORINFOF_PRIMARY;
-use crate::xna::csharp::{Rectangle, Screen};
+use crate::xna::csharp::{Rectangle };
+use crate::xna::csharp::forms::Screen;
 
 impl Screen {
     pub fn from_monitor(monitor: isize, hdc: isize) -> Self {

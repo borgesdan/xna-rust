@@ -1,6 +1,7 @@
 pub mod forms;
 
 use std::str;
+use thiserror::Error;
 
 #[derive(Default)]
 struct Rectangle {
@@ -10,16 +11,8 @@ struct Rectangle {
     pub height : i32,
 }
 
-pub struct Screen {
-    h_monitor: isize,
-    primary: bool,
-    device_name: String,
-    bounds: Rectangle,
-    working_area: Rectangle
-}
-
 impl Rectangle {
-    pub fn from_ltrb(left: i32, top: i32, right: i32, bottom: i32) -> Rectangle {
+    pub fn from_ltrb(left: i32, top: i32, right: i32, bottom: i32) -> Self {
         Rectangle{
             x: left,
             y: top,

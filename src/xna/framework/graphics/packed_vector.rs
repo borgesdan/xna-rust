@@ -1,20 +1,8 @@
 use crate::xna::framework::{Vector3, Vector4};
-
-pub trait IPackedVector {
-    fn to_vector4(&self) -> Vector4;
-}
-
-pub struct PackUtils {}
-
-#[derive(Default)]
-pub struct Alpha8 {
-    packed_value: u8,
-}
-
-#[derive(Default)]
-pub struct Bgr565 {
-    packed_value: u16,
-}
+use crate::xna::framework::graphics::Alpha8;
+use crate::xna::framework::graphics::PackUtils;
+use crate::xna::framework::graphics::IPackedVector;
+use crate::xna::framework::graphics::Bgr565;
 
 impl PackUtils {
     pub fn clamp_and_round(value: f32, min: f32, max: f32) -> f64 {
