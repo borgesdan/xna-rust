@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 use std::mem;
 use windows::core::PCSTR;
 use std::ptr;
@@ -12,7 +13,7 @@ impl Screen {
     pub fn from_monitor(monitor: isize, hdc: isize) -> Self {
         //TODO: multi monitor support
 
-        let h_monitor = HMONITOR(monitor);
+        let h_monitor = HMONITOR(monitor as *mut c_void);
         let info = Self::get_monitor_info(&h_monitor);
 
         let bounds = Rectangle::from_ltrb(
@@ -28,7 +29,7 @@ impl Screen {
         if(hdc == 0) {
             unsafe {
                 let driver = PCSTR(ptr::null());
-                let device = PCSTR(device_name.as_ptr());
+                let device = PCSTR(device_name.as_ptr() as *const u8);
                 let output = PCSTR(ptr::null());
                 screen_dc = CreateDCA(driver, device, output, None);
             }
@@ -43,9 +44,17 @@ impl Screen {
 
         let primary = (info.monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0;
 
+        let mut name: [u8; 32] = [0; 32];
+
+        let mut index = 0;
+        for i in device_name {
+            name[index] = i as u8;
+            index += 1;
+        }
+
         Screen {
             h_monitor: monitor,
-            device_name: String::from_utf8(Vec::from(device_name)).unwrap(),
+            device_name: String::from_utf8(name.to_vec()).unwrap(),
             bounds,
             primary,
             working_area

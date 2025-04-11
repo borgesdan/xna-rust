@@ -2,8 +2,6 @@ pub mod graphics;
 pub mod color;
 mod vector;
 
-use crate::xna::framework::graphics::packed_vector::IPackedVector;
-
 #[derive(Default)]
 pub struct Point {
     pub x: i32,

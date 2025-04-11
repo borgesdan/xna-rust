@@ -1,5 +1,5 @@
 use crate::xna::framework::{Color, Vector3, Vector4};
-use crate::xna::framework::graphics::packed_vector::{IPackedVector, PackUtils};
+use crate::xna::framework::graphics::{IPackedVector, PackUtils};
 
 impl IPackedVector for Color {
     fn to_vector4(&self) -> Vector4 {
