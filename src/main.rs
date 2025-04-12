@@ -13,6 +13,8 @@ use crate::xna::framework::graphics::GraphicsAdapter;
 
 fn main() {
 
+    let mut adapter : Vec<GraphicsAdapter> = Vec::new();
+
     // unsafe {
     //     // Nome da classe da janela
     //     let class_name = to_wide("MinhaJanelaClass");

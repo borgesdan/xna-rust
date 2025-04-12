@@ -7,7 +7,10 @@ use windows::Win32::Graphics::Gdi::*;
 use windows::Win32::System::Com::*;
 
 impl GraphicsAdapter {
-    pub fn adapters(adapters: &mut Vec<GraphicsAdapter>){
+    pub fn adapters() -> Vec<GraphicsAdapter> {
+
+        let mut adapters : Vec<GraphicsAdapter> = Vec::new();
+
         unsafe {
             let factory = CreateDXGIFactory::<IDXGIFactory>().unwrap();
 
@@ -41,6 +44,22 @@ impl GraphicsAdapter {
                 count += 1;
             }
         }
+
+        adapters
+    }
+
+    pub fn default_adapter() -> Option<GraphicsAdapter> {
+        let mut adapters =  Self::adapters();
+
+        if adapters.len() != 0 {
+            return Some(adapters.remove(0));
+        }
+
+        None
+    }
+
+    pub fn is_wide_screen() -> bool {
+        true
     }
 
     fn set_output_vars(dx_adapter: &IDXGIAdapter, adapter: &mut GraphicsAdapter){
