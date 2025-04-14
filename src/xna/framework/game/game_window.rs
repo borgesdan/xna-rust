@@ -4,7 +4,14 @@ use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, HINSTANCE, RECT, COLORREF};
 use windows::Win32::Graphics::Gdi::CreateSolidBrush;
 use windows::Win32::System::LibraryLoader::{GetModuleHandleW};
-use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT, WM_QUIT, WS_OVERLAPPEDWINDOW, WINDOW_EX_STYLE, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE, WS_POPUP, WS_EX_TOPMOST, GetWindowLongA, GWL_STYLE, GWL_EXSTYLE, WINDOW_STYLE, AdjustWindowRectEx, GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN, MoveWindow, LoadIconW, IDI_APPLICATION};
+use windows::Win32::UI::WindowsAndMessaging::{
+    CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage,
+    RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW, CS_HREDRAW, CS_VREDRAW,
+    CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT, WM_QUIT, WS_OVERLAPPEDWINDOW,
+    WINDOW_EX_STYLE, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE, WS_POPUP, WS_EX_TOPMOST,
+    GetWindowLongA, GWL_STYLE, GWL_EXSTYLE, WINDOW_STYLE, AdjustWindowRectEx, GetSystemMetrics,
+    SM_CXSCREEN, SM_CYSCREEN, MoveWindow, LoadIconW, IDI_APPLICATION, CS_DBLCLKS, CS_OWNDC
+};
 use crate::xna::framework::game::{GameWindow, GameWindowError, GameWindowStyle};
 use crate::xna::framework::{Point, Rectangle, Vector2};
 
@@ -31,8 +38,6 @@ impl GameWindow {
             let mut win_rect = RECT { left: 0, top: 0, right: game_window.window_width, bottom: game_window.window_height };
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
-
-            let s = WINDOW_STYLE(5);
 
             let win_style2 = WINDOW_STYLE(win_style as u32);
             let win_ex_style2 = WINDOW_EX_STYLE(win_ex_style as u32);
@@ -64,7 +69,7 @@ impl GameWindow {
 
             let wnd_class = WNDCLASSEXW {
                 cbSize : mem::size_of::<WNDCLASSEXW>() as u32,
-                style : CS_HREDRAW | CS_VREDRAW,
+                style : CS_DBLCLKS | CS_OWNDC | CS_HREDRAW | CS_VREDRAW,
                 lpfnWndProc : Some(Self::wnd_proc),
                 lpszClassName : PCWSTR(class_name.as_ptr()),
                 hInstance : h_instance.into(),
