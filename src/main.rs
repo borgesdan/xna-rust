@@ -9,11 +9,15 @@ use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, D
 
 use crate::xna::framework::Color;
 use crate::xna::csharp::forms::Screen;
+use crate::xna::framework::game::GameWindow;
 use crate::xna::framework::graphics::GraphicsAdapter;
 
 fn main() {
 
-    let mut adapter : Vec<GraphicsAdapter> = Vec::new();
+    let mut window = GameWindow::default();
+    window.create().unwrap();
+
+    //let mut adapter : Vec<GraphicsAdapter> = Vec::new();
 
     // unsafe {
     //     // Nome da classe da janela
@@ -70,23 +74,23 @@ fn main() {
 }
 
 // Função de processamento de mensagens da janela (WndProc)
-extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-    unsafe {
-        match msg {
-            WM_PAINT => {
-                // Aqui poderia ser feito o desenho da janela, se necessário
-                LRESULT(0)
-            }
-            WM_DESTROY => {
-                PostQuitMessage(0);
-                LRESULT(0)
-            }
-            _ => DefWindowProcW(hwnd, msg, wparam, lparam),
-        }
-    }
-}
+// extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+//     unsafe {
+//         match msg {
+//             WM_PAINT => {
+//                 // Aqui poderia ser feito o desenho da janela, se necessário
+//                 LRESULT(0)
+//             }
+//             WM_DESTROY => {
+//                 PostQuitMessage(0);
+//                 LRESULT(0)
+//             }
+//             _ => DefWindowProcW(hwnd, msg, wparam, lparam),
+//         }
+//     }
+// }
 
 // Função para converter string Rust (&str) para UTF-16
-fn to_wide(s: &str) -> Vec<u16> {
-    s.encode_utf16().chain(std::iter::once(0)).collect()
-}
+// fn to_wide(s: &str) -> Vec<u16> {
+//     s.encode_utf16().chain(std::iter::once(0)).collect()
+// }

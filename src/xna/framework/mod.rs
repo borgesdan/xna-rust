@@ -1,6 +1,7 @@
+pub mod game;
 pub mod graphics;
 pub mod color;
-mod vector;
+pub mod vector;
 
 #[derive(Default)]
 pub struct Point {

@@ -1,4 +1,4 @@
-use crate::xna::framework::Vector4;
+use crate::xna::framework::{Rectangle, Vector4};
 pub mod packed_vector;
 pub mod graphics_adapter;
 
@@ -30,3 +30,5 @@ pub struct GraphicsAdapter {
     pub sub_system_id: u32,
     pub vendor_id: u32,
 }
+
+
