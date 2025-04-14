@@ -1,9 +1,10 @@
 use std::mem;
-use windows::core::{PCSTR, PCWSTR};
-use windows::Win32::System::LibraryLoader::GetModuleHandleA;
-use windows::Win32::UI::WindowsAndMessaging::{AdjustWindowRectEx, CreateWindowExA, DefWindowProcW, GetSystemMetrics, GetWindowLongA, LoadCursorA, LoadCursorW, LoadIconA, LoadIconW, MoveWindow, PostQuitMessage, RegisterClassExA, CS_DBLCLKS, CS_HREDRAW, CS_OWNDC, CS_VREDRAW, GWL_EXSTYLE, GWL_STYLE, IDC_ARROW, IDI_APPLICATION, SM_CXSCREEN, SM_CYSCREEN, WINDOW_EX_STYLE, WINDOW_STYLE, WNDCLASSEXA, WS_EX_TOPMOST, WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_VISIBLE};
-use windows::Win32::Foundation::*;
-use windows::Win32::Graphics::Gdi::{CreateSolidBrush, RGBTRIPLE};
+use std::fmt::Pointer;
+use windows::core::PCWSTR;
+use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, HINSTANCE, RECT, COLORREF};
+use windows::Win32::Graphics::Gdi::CreateSolidBrush;
+use windows::Win32::System::LibraryLoader::{GetModuleHandleW};
+use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT, WM_QUIT, WS_OVERLAPPEDWINDOW, WINDOW_EX_STYLE, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE, WS_POPUP, WS_EX_TOPMOST, GetWindowLongA, GWL_STYLE, GWL_EXSTYLE, WINDOW_STYLE, AdjustWindowRectEx, GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN, MoveWindow, LoadIconW, IDI_APPLICATION};
 use crate::xna::framework::game::{GameWindow, GameWindowError, GameWindowStyle};
 use crate::xna::framework::{Point, Rectangle, Vector2};
 
@@ -13,22 +14,21 @@ impl GameWindow {
             x: self.window_pos_x,
             y: self.window_pos_y,
             width: self.window_width as i32,
-            height: self.window_height as i32
+            height: self.window_height as i32,
         }
     }
 
-    fn convert_window_style_to_u32(&self) -> u32 {
-        match self.window_style {
+    fn convert_window_style_to_u32(style: &GameWindowStyle) -> u32 {
+        match style {
             GameWindowStyle::Windowed => WS_OVERLAPPED.0 | WS_SYSMENU.0 | WS_VISIBLE.0,
             GameWindowStyle::FullScreen => WS_POPUP.0 | WS_VISIBLE.0,
             GameWindowStyle::BorderlessFullScreen => WS_EX_TOPMOST.0 | WS_POPUP.0 | WS_VISIBLE.0
         }
     }
 
-    fn apply_windowed_config(&mut self, hwnd: &HWND) {
-        unsafe{
-
-            let mut win_rect = RECT{ left: 0, top: 0, right: self.window_width, bottom: self.window_height };
+    fn apply_windowed(hwnd: &HWND, game_window: &mut GameWindow) {
+        unsafe {
+            let mut win_rect = RECT { left: 0, top: 0, right: game_window.window_width, bottom: game_window.window_height };
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
 
@@ -42,87 +42,80 @@ impl GameWindow {
             let cx_screen = GetSystemMetrics(SM_CXSCREEN);
             let cy_screen = GetSystemMetrics(SM_CYSCREEN);
 
-            self.window_pos_x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
-            self.window_pos_y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
+            game_window.window_pos_x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
+            game_window.window_pos_y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
 
             MoveWindow(
                 *hwnd,
-                self.window_pos_x,
-                self.window_pos_y,
+                game_window.window_pos_x,
+                game_window.window_pos_y,
                 win_rect.right - win_rect.left,
                 win_rect.bottom - win_rect.top,
-                true
+                true,
             ).unwrap();
         }
     }
 
-    pub fn create(&mut self) -> Result<(), GameWindowError> {
-        let class_name = "XnaGameWindow";
-
-        let mut wnd_class = WNDCLASSEXA::default();
-        wnd_class.cbSize = mem::size_of::<WNDCLASSEXA>() as u32;
-        wnd_class.style = CS_DBLCLKS | CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-        wnd_class.lpfnWndProc = Some(Self::wnd_proc);
-        wnd_class.cbClsExtra = 0;
-        wnd_class.cbWndExtra = 0;
-        wnd_class.lpszMenuName = PCSTR::null();
-        wnd_class.lpszClassName = PCSTR::from_raw(class_name.as_ptr());
-
+    pub fn create_window(window_size: Point, window_style: GameWindowStyle, window_title: &str) -> Result<GameWindow, GameWindowError> {
         unsafe {
-            let h_module = GetModuleHandleA(None);
+            let class_name = Self::to_wide("XnaGameWindow");
+            let h_module = GetModuleHandleW(None).unwrap();
+            let h_instance = HINSTANCE::from(h_module);
 
-            if h_module.is_err() {
-                return Err(GameWindowError {
-                    message: "Failed to get module handle".to_string(),
-                })
-            }
+            let wnd_class = WNDCLASSEXW {
+                cbSize : mem::size_of::<WNDCLASSEXW>() as u32,
+                style : CS_HREDRAW | CS_VREDRAW,
+                lpfnWndProc : Some(Self::wnd_proc),
+                lpszClassName : PCWSTR(class_name.as_ptr()),
+                hInstance : h_instance.into(),
+                hIcon : LoadIconW(None, IDI_APPLICATION).unwrap(),
+                hCursor : LoadCursorW(None, IDC_ARROW).unwrap(),
+                hbrBackground : CreateSolidBrush(COLORREF(0)),
+                hIconSm : LoadIconW(None, IDI_APPLICATION).unwrap(),
+                ..Default::default()
+            };
 
-            let h_instance = HINSTANCE::from(h_module.unwrap());
-            wnd_class.hInstance = h_instance;
+            RegisterClassExW(&wnd_class);
 
-            let icon = PCSTR(IDI_APPLICATION.to_string().unwrap().as_ptr());
-            let cursor = PCSTR(IDC_ARROW.to_string().unwrap().as_ptr());
-
-            wnd_class.hIcon = LoadIconA(None, icon).unwrap();
-            wnd_class.hCursor = LoadCursorA(None, cursor).unwrap();
-            wnd_class.hbrBackground = CreateSolidBrush(COLORREF(0));
-            wnd_class.hIconSm = LoadIconA(None, icon).unwrap();
-
-            let register_result = RegisterClassExA(&wnd_class);
-
-            if register_result == 0 {
-                return Err(GameWindowError{
-                    message: "RegisterClass failed".to_string(),
-                });
-            }
-
-            let style = self.convert_window_style_to_u32();
+            let style = Self::convert_window_style_to_u32(&window_style);
             let ex_style = WINDOW_EX_STYLE(style);
+            let wn_style = WINDOW_STYLE(style);
 
-            let window_handle = CreateWindowExA(
-                ex_style,
-                PCSTR::from_raw(class_name.as_ptr()),
-                PCSTR::from_raw(self.window_title.as_ptr()),
-                WINDOW_STYLE(0),
-                self.window_pos_x,
-                self.window_pos_y,
-                self.window_width,
-                self.window_height,
+            let window_handle = CreateWindowExW(
+                WINDOW_EX_STYLE::default(),
+                PCWSTR(class_name.as_ptr()),
+                PCWSTR(Self::to_wide(window_title).as_ptr()),
+                wn_style,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                window_size.x,
+                window_size.y,
                 None,
                 None,
                 Some(h_instance),
-                None
+                None,
             ).unwrap();
 
-            if self.window_style != GameWindowStyle::Windowed {
-                self.apply_windowed_config(&window_handle);
-            }
-        }
+            let mut new_window = GameWindow::default();
+            new_window.window_style = GameWindowStyle::from(window_style);
+            new_window.window_width = window_size.x;
+            new_window.window_height = window_size.y;
+            new_window.window_pos_x = 0;
+            new_window.window_pos_y = 0;
 
-        Ok(())
+            if new_window.window_style == GameWindowStyle::Windowed {
+                Self::apply_windowed(&window_handle, &mut new_window);
+            }
+
+            Ok(new_window)
+        }
     }
 
-    extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    fn to_wide(s: &str) -> Vec<u16> {
+        s.encode_utf16().chain(std::iter::once(0)).collect()
+    }
+
+    pub extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
         unsafe {
             match msg {
                 WM_PAINT => {

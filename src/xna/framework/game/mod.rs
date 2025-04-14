@@ -1,5 +1,6 @@
 mod game_window;
 
+use std::io::IntoInnerError;
 use thiserror::Error;
 use windows::core::imp::HMODULE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
@@ -16,6 +17,7 @@ pub enum DisplayOrientation {
 #[error("{message}")]
 pub struct GameWindowError {
     pub message: String,
+    pub inner_error: String
 }
 
 #[derive(Default, PartialEq, Eq)]
@@ -34,9 +36,4 @@ pub struct GameWindow {
     pub window_width: i32,
     pub window_title: String,
     pub window_style: GameWindowStyle,
-
-    h_instance: isize,
-    window_handle: isize,
-    window_icon: isize,
-    window_cursor: isize,
 }
