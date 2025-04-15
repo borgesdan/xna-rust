@@ -37,5 +37,4 @@ pub struct GameWindow {
     pub window_width: i32,
     pub window_title: String,
     pub window_style: GameWindowStyle,
-    pub window_background_color: Color,
 }

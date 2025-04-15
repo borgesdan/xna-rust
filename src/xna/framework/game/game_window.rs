@@ -33,7 +33,6 @@ impl WindowsGameWindow {
                 window_height: game_window.window_height,
                 window_style: GameWindowStyle::from(game_window.window_style),
                 window_title: game_window.window_title.to_string(),
-                window_background_color: game_window.window_background_color,
             },
             hwnd: HWND::default(),
         }
@@ -90,7 +89,7 @@ impl GameWindow {
         }
     }
 
-    pub fn create_window(window_size: Point, window_style: GameWindowStyle, background_color: Color, window_title: &str) -> Result<WindowsGameWindow, GameWindowError> {
+    pub fn create_window(window_size: Point, window_style: GameWindowStyle, window_title: &str) -> Result<WindowsGameWindow, GameWindowError> {
         unsafe {
             let class_name = Self::to_wide("XnaGameWindow");
             let h_module = GetModuleHandleW(None).unwrap();
@@ -104,7 +103,7 @@ impl GameWindow {
                 hInstance : h_instance.into(),
                 hIcon : LoadIconW(None, IDI_APPLICATION).unwrap(),
                 hCursor : LoadCursorW(None, IDC_ARROW).unwrap(),
-                hbrBackground : CreateSolidBrush(COLORREF(background_color.packed_value)),
+                hbrBackground : CreateSolidBrush(COLORREF(0)),
                 hIconSm : LoadIconW(None, IDI_APPLICATION).unwrap(),
                 ..Default::default()
             };
@@ -138,7 +137,6 @@ impl GameWindow {
                     window_height: window_size.y,
                     window_style: GameWindowStyle::from(window_style),
                     window_title: window_title.to_string(),
-                    window_background_color: background_color
                 },
                 hwnd: window_handle,
             };
