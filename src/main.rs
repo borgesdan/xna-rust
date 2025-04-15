@@ -17,7 +17,7 @@ use crate::xna::framework::graphics::GraphicsAdapter;
 
 fn main() {
 
-    let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" );
+    let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, Color::cornflower_blue(), "Teste" );
 return;
 
 

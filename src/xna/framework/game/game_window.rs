@@ -13,7 +13,36 @@ use windows::Win32::UI::WindowsAndMessaging::{
     SM_CXSCREEN, SM_CYSCREEN, MoveWindow, LoadIconW, IDI_APPLICATION, CS_DBLCLKS, CS_OWNDC
 };
 use crate::xna::framework::game::{GameWindow, GameWindowError, GameWindowStyle};
-use crate::xna::framework::{Point, Rectangle, Vector2};
+use crate::xna::framework::{Color, Point, Rectangle, Vector2};
+
+#[derive(Default)]
+pub struct WindowsGameWindow {
+    pub game_window: GameWindow,
+    pub hwnd: HWND,
+}
+
+impl WindowsGameWindow {
+    pub fn from_game_window(game_window: &GameWindow) -> Self {
+        let style = game_window.window_style;
+
+        WindowsGameWindow {
+            game_window: GameWindow {
+                window_pos_x: game_window.window_pos_x,
+                window_pos_y: game_window.window_pos_y,
+                window_width: game_window.window_width,
+                window_height: game_window.window_height,
+                window_style: GameWindowStyle::from(game_window.window_style),
+                window_title: game_window.window_title.to_string(),
+                window_background_color: game_window.window_background_color,
+            },
+            hwnd: HWND::default(),
+        }
+    }
+
+    pub fn to_game_window(&self) -> GameWindow {
+        self.game_window.clone()
+    }
+}
 
 impl GameWindow {
     pub fn client_bounds(&self) -> Rectangle {
@@ -33,9 +62,9 @@ impl GameWindow {
         }
     }
 
-    fn apply_windowed(hwnd: &HWND, game_window: &mut GameWindow) {
+    fn apply_windowed(hwnd: &HWND, wgame_window: &mut WindowsGameWindow) {
         unsafe {
-            let mut win_rect = RECT { left: 0, top: 0, right: game_window.window_width, bottom: game_window.window_height };
+            let mut win_rect = RECT { left: 0, top: 0, right: wgame_window.game_window.window_width, bottom: wgame_window.game_window.window_height };
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
 
@@ -47,13 +76,13 @@ impl GameWindow {
             let cx_screen = GetSystemMetrics(SM_CXSCREEN);
             let cy_screen = GetSystemMetrics(SM_CYSCREEN);
 
-            game_window.window_pos_x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
-            game_window.window_pos_y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
+            wgame_window.game_window.window_pos_x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
+            wgame_window.game_window.window_pos_y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
 
             MoveWindow(
                 *hwnd,
-                game_window.window_pos_x,
-                game_window.window_pos_y,
+                wgame_window.game_window.window_pos_x,
+                wgame_window.game_window.window_pos_y,
                 win_rect.right - win_rect.left,
                 win_rect.bottom - win_rect.top,
                 true,
@@ -61,7 +90,7 @@ impl GameWindow {
         }
     }
 
-    pub fn create_window(window_size: Point, window_style: GameWindowStyle, window_title: &str) -> Result<GameWindow, GameWindowError> {
+    pub fn create_window(window_size: Point, window_style: GameWindowStyle, background_color: Color, window_title: &str) -> Result<WindowsGameWindow, GameWindowError> {
         unsafe {
             let class_name = Self::to_wide("XnaGameWindow");
             let h_module = GetModuleHandleW(None).unwrap();
@@ -75,7 +104,7 @@ impl GameWindow {
                 hInstance : h_instance.into(),
                 hIcon : LoadIconW(None, IDI_APPLICATION).unwrap(),
                 hCursor : LoadCursorW(None, IDC_ARROW).unwrap(),
-                hbrBackground : CreateSolidBrush(COLORREF(0)),
+                hbrBackground : CreateSolidBrush(COLORREF(background_color.packed_value)),
                 hIconSm : LoadIconW(None, IDI_APPLICATION).unwrap(),
                 ..Default::default()
             };
@@ -101,14 +130,21 @@ impl GameWindow {
                 None,
             ).unwrap();
 
-            let mut new_window = GameWindow::default();
-            new_window.window_style = GameWindowStyle::from(window_style);
-            new_window.window_width = window_size.x;
-            new_window.window_height = window_size.y;
-            new_window.window_pos_x = 0;
-            new_window.window_pos_y = 0;
+            let mut new_window = WindowsGameWindow {
+                game_window: GameWindow {
+                    window_pos_x: CW_USEDEFAULT,
+                    window_pos_y: CW_USEDEFAULT,
+                    window_width: window_size.x,
+                    window_height: window_size.y,
+                    window_style: GameWindowStyle::from(window_style),
+                    window_title: window_title.to_string(),
+                    window_background_color: background_color
+                },
+                hwnd: window_handle,
+            };
 
-            if new_window.window_style == GameWindowStyle::Windowed {
+
+            if new_window.game_window.window_style == GameWindowStyle::Windowed {
                 Self::apply_windowed(&window_handle, &mut new_window);
             }
 

@@ -46,7 +46,7 @@ pub struct Quaternion {
     pub w: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct Color {
     pub packed_value: u32,
 }
