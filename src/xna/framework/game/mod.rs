@@ -38,3 +38,8 @@ pub struct GameWindow {
     pub window_title: String,
     pub window_style: GameWindowStyle,
 }
+
+#[derive(Default)]
+pub struct Game {
+
+}
