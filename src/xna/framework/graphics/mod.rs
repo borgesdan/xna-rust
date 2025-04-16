@@ -4,7 +4,6 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
-pub mod presentation_parameters;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -273,12 +272,23 @@ pub struct PresentationParameters {
     pub presentation_swap_effect: SwapEffect
 }
 
+#[derive(Default, PartialEq, Copy, Clone)]
+pub struct Viewport {
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    pub min_depth: f32,
+    pub max_depth: f32
+}
+
 #[derive(Default)]
 pub struct GraphicsDevice {
-    adapter: GraphicsAdapter,
-    blend_state: BlendState,
-    depth_stencil_state: DepthStencilState,
-    rasterizer_state: RasterizerState,
-    sampler_state_collection: SamplerStateCollection,
-    presentation_parameters: PresentationParameters
+    pub adapter: GraphicsAdapter,
+    pub blend_state: BlendState,
+    pub depth_stencil_state: DepthStencilState,
+    pub rasterizer_state: RasterizerState,
+    pub sampler_state_collection: SamplerStateCollection,
+    pub presentation_parameters: PresentationParameters,
+    pub viewport: Viewport
 }
