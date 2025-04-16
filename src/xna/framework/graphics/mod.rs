@@ -78,28 +78,28 @@ pub enum ColorWriteChannels {
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct BlendRenderTarget {
-    enabled: bool,
-    source: Blend,
-    destination: Blend,
-    operation: BlendFunction,
-    source_alpha: Blend,
-    destination_alpha: Blend,
-    operation_alpha: BlendFunction,
-    write_mask: ColorWriteChannels,
+    pub enabled: bool,
+    pub source: Blend,
+    pub destination: Blend,
+    pub operation: BlendFunction,
+    pub source_alpha: Blend,
+    pub destination_alpha: Blend,
+    pub operation_alpha: BlendFunction,
+    pub write_mask: ColorWriteChannels,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct BlendState {
-    alpha_blend_function: BlendFunction,
-    alpha_destination_blend: Blend,
-    alpha_source_blend: Blend,
-    color_blend_function: BlendFunction,
-    color_destination_blend: Blend,
-    color_source_blend: Blend,
-    blend_factor: Color,
-    multi_sample_mask: i32,
-    alpha_to_coverage_enable: bool,
-    render_targets: [BlendRenderTarget; 8]
+    pub alpha_blend_function: BlendFunction,
+    pub alpha_destination_blend: Blend,
+    pub alpha_source_blend: Blend,
+    pub color_blend_function: BlendFunction,
+    pub color_destination_blend: Blend,
+    pub color_source_blend: Blend,
+    pub blend_factor: Color,
+    pub multi_sample_mask: i32,
+    pub alpha_to_coverage_enable: bool,
+    pub render_targets: [BlendRenderTarget; 8]
 }
 
 #[derive(Default)]
