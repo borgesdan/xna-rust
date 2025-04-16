@@ -4,6 +4,7 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
+pub mod presentation_parameters;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -227,11 +228,57 @@ pub struct SamplerStateCollection {
     pub samplers: Vec<SamplerState>
 }
 
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum SurfaceFormat {
+    #[default]
+    Color,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum PresentInterval {
+    #[default]
+    Default,
+    One,
+    Two,
+    Immediate
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum DepthFormat {
+    #[default]
+    None,
+    Depth16,
+    Depth24,
+    Depth24Stencil8
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum SwapEffect {
+    Discard,
+    Sequential,
+    FlipSequential,
+    #[default]
+    FlipDiscard
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub struct PresentationParameters {
+    pub back_buffer_width: i32,
+    pub back_buffer_height: i32,
+    pub back_buffer_format: SurfaceFormat,
+    pub is_full_screen: bool,
+    pub multi_sample_count: i32,
+    pub presentation_interval: PresentInterval,
+    pub depth_stencil_format: DepthFormat,
+    pub presentation_swap_effect: SwapEffect
+}
+
 #[derive(Default)]
 pub struct GraphicsDevice {
     adapter: GraphicsAdapter,
     blend_state: BlendState,
     depth_stencil_state: DepthStencilState,
     rasterizer_state: RasterizerState,
-    sampler_state_collection: SamplerStateCollection
+    sampler_state_collection: SamplerStateCollection,
+    presentation_parameters: PresentationParameters
 }
