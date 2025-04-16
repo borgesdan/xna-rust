@@ -1,6 +1,7 @@
 pub mod packed_vector;
 pub mod graphics_adapter;
 pub mod blend_state;
+pub mod depth_stencil_state;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -102,7 +103,64 @@ pub struct BlendState {
     pub render_targets: [BlendRenderTarget; 8]
 }
 
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum StencilOperation
+{
+    #[default]
+    Keep,
+    Zero,
+    Replace,
+    IncrementSaturation,
+    DecrementSaturation,
+    Invert,
+    Increment,
+    Decrement,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum ComparisonFunction {
+    #[default]
+    Never,
+    Less,
+    Equal,
+    LessEquals,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Always
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub struct DepthStencilStateCounterClockWise {
+    pub depth_buffer_fail: StencilOperation,
+    pub stencil_fail: StencilOperation,
+    pub stencil_function: ComparisonFunction,
+    pub stencil_pass: StencilOperation,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub struct DepthStencilStateStencil {
+    pub enable: bool,
+    pub fail: StencilOperation,
+    pub function: ComparisonFunction,
+    pub mask: i32,
+    pub write_mask: i32,
+    pub pass: StencilOperation,
+    pub depth_buffer_fail: StencilOperation,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub struct DepthStencilState {
+    pub counter_clock_wise: DepthStencilStateCounterClockWise,
+    pub stencil: DepthStencilStateStencil,
+    pub depth_buffer_enable: bool,
+    pub depth_buffer_write_enable: bool,
+    pub depth_buffer_function: ComparisonFunction,
+}
+
 #[derive(Default)]
 pub struct GraphicsDevice {
-    adapter: Box<GraphicsAdapter>,
+    adapter: GraphicsAdapter,
+    blend_state: BlendState,
+    depth_stencil_state: DepthStencilState
 }
