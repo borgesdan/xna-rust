@@ -3,6 +3,7 @@ pub mod graphics_adapter;
 pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
+pub mod sampler_state;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -54,7 +55,7 @@ pub enum Blend {
     Source1Color,
     InverseSource1Color,
     Source1Alpha,
-    InverseSource1Alpha
+    InverseSource1Alpha,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -64,7 +65,7 @@ pub enum BlendFunction {
     Subtract,
     ReverseSubtract,
     Min,
-    Max
+    Max,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -101,7 +102,7 @@ pub struct BlendState {
     pub blend_factor: Color,
     pub multi_sample_mask: i32,
     pub alpha_to_coverage_enable: bool,
-    pub render_targets: [BlendRenderTarget; 8]
+    pub render_targets: [BlendRenderTarget; 8],
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -128,7 +129,7 @@ pub enum ComparisonFunction {
     Greater,
     NotEqual,
     GreaterEqual,
-    Always
+    Always,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -171,7 +172,7 @@ pub enum CullMode {
 pub enum FillMode {
     #[default]
     WireFrame,
-    Solid
+    Solid,
 }
 
 #[derive(Default, PartialEq, Copy, Clone)]
@@ -182,7 +183,48 @@ pub struct RasterizerState {
     pub depth_bias: f32,
     pub slope_scale_depth_bias: f32,
     pub scissor_test_enable: bool,
-    pub depth_clip_enable: bool
+    pub depth_clip_enable: bool,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum TextureFilter {
+    #[default]
+    Linear,
+    Point,
+    Anisotropic,
+    LinearMipPoint,
+    PointMipLinear,
+    MinLinearMagPointMipLinear,
+    MinLinearMagPointMipPoint,
+    MinPointMagLinearMipLinear,
+    MinPointMagLinearMipPoint,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum TextureAddressMode {
+    #[default]
+    Wrap,
+    Mirror,
+    Clamp,
+    Border,
+    MirrorOnce,
+}
+
+#[derive(Default, PartialEq, Copy, Clone)]
+pub struct SamplerState {
+    pub max_anisotropy: u32,
+    pub filter: TextureFilter,
+    pub address_u: TextureAddressMode,
+    pub address_v: TextureAddressMode,
+    pub address_w: TextureAddressMode,
+    pub mip_map_level_of_detail_bias: f32,
+    pub max_mip_level: f32,
+    pub min_mip_level: f32,
+}
+
+#[derive(Default, PartialEq, Clone)]
+pub struct SamplerStateCollection {
+    pub samplers: Vec<SamplerState>
 }
 
 #[derive(Default)]
@@ -190,5 +232,6 @@ pub struct GraphicsDevice {
     adapter: GraphicsAdapter,
     blend_state: BlendState,
     depth_stencil_state: DepthStencilState,
-    rasterizer_state: RasterizerState
+    rasterizer_state: RasterizerState,
+    sampler_state_collection: SamplerStateCollection
 }
