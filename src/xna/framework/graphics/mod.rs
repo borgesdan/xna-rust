@@ -2,6 +2,7 @@ pub mod packed_vector;
 pub mod graphics_adapter;
 pub mod blend_state;
 pub mod depth_stencil_state;
+pub mod rasterizer_state;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -158,9 +159,36 @@ pub struct DepthStencilState {
     pub depth_buffer_function: ComparisonFunction,
 }
 
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum CullMode {
+    #[default]
+    None,
+    CullClockwiseFace,
+    CullCounterClockwiseFace,
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub enum FillMode {
+    #[default]
+    WireFrame,
+    Solid
+}
+
+#[derive(Default, PartialEq, Copy, Clone)]
+pub struct RasterizerState {
+    pub cull_mode: CullMode,
+    pub fill_mode: FillMode,
+    pub multi_sample_anti_alias: bool,
+    pub depth_bias: f32,
+    pub slope_scale_depth_bias: f32,
+    pub scissor_test_enable: bool,
+    pub depth_clip_enable: bool
+}
+
 #[derive(Default)]
 pub struct GraphicsDevice {
     adapter: GraphicsAdapter,
     blend_state: BlendState,
-    depth_stencil_state: DepthStencilState
+    depth_stencil_state: DepthStencilState,
+    rasterizer_state: RasterizerState
 }
