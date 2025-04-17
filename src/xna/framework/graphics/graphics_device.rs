@@ -1,5 +1,6 @@
 use std::ptr;
 use std::boxed;
+use windows::core::Param;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Graphics::Direct3D;
 use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, D3D11CreateDeviceAndSwapChain, ID3D11Device, ID3D11DeviceContext, D3D11_CREATE_DEVICE_DEBUG, D3D11_CREATE_DEVICE_FLAG, D3D11_SDK_VERSION};
@@ -12,7 +13,7 @@ pub struct WindowsGraphicsDevice {
     pub context: ID3D11DeviceContext,
     pub factory: IDXGIFactory,
     pub feature_level: D3D_FEATURE_LEVEL,
-    pub graphics_device: GraphicsDevice
+    pub base: GraphicsDevice
 }
 
 impl GraphicsDevice {
@@ -22,6 +23,7 @@ impl GraphicsDevice {
             let hmodule = HMODULE::default();
             let factory = CreateDXGIFactory::<IDXGIFactory>().unwrap();
             //let adapter = factory.EnumAdapters(0).unwrap();
+            //let adp: Option<IDXGIAdapter> = None;
 
             let mut device: Option<ID3D11Device> = None;
             let mut context: Option<ID3D11DeviceContext> = None;
@@ -54,7 +56,7 @@ impl GraphicsDevice {
                 device: device.unwrap(),
                 factory: factory,
                 feature_level: feature_level,
-                graphics_device: GraphicsDevice::default(),
+                base: GraphicsDevice::default(),
             }
         }
     }
