@@ -4,6 +4,7 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
+mod graphics_device;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -282,6 +283,16 @@ pub struct Viewport {
     pub max_depth: f32
 }
 
+#[derive(Default, PartialEq, Copy, Clone)]
+pub struct Texture2D {
+
+}
+
+#[derive(Default, PartialEq, Copy, Clone)]
+pub struct RenderTarget {
+
+}
+
 #[derive(Default)]
 pub struct GraphicsDevice {
     pub adapter: GraphicsAdapter,
@@ -290,5 +301,6 @@ pub struct GraphicsDevice {
     pub rasterizer_state: RasterizerState,
     pub sampler_state_collection: SamplerStateCollection,
     pub presentation_parameters: PresentationParameters,
-    pub viewport: Viewport
+    pub viewport: Viewport,
+    pub render_target: RenderTarget
 }
