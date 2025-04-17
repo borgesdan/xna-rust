@@ -13,24 +13,26 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use crate::xna::framework::{Color, Point};
 use crate::xna::csharp::forms::Screen;
 use crate::xna::framework::game::{GameWindow, GameWindowStyle};
-use crate::xna::framework::graphics::GraphicsAdapter;
+use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice};
 
 fn main() {
 
-    let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" );
+    let device = GraphicsDevice::create();
 
-    let mut msg = MSG::default();
-    unsafe {
-        while GetMessageW(&mut msg, None, 0, 0).into() {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-
-            if msg.message == WM_QUIT {
-                break;
-            }
-        }
-    }
-return;
+//     let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" );
+//
+//     let mut msg = MSG::default();
+//     unsafe {
+//         while GetMessageW(&mut msg, None, 0, 0).into() {
+//             TranslateMessage(&msg);
+//             DispatchMessageW(&msg);
+//
+//             if msg.message == WM_QUIT {
+//                 break;
+//             }
+//         }
+//     }
+// return;
 
 
 

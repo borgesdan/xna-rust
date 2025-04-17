@@ -8,24 +8,23 @@ use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFacto
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice};
 
 pub struct WindowsGraphicsDevice {
-    pub device: Box<ID3D11Device>,
-    pub context: Box<ID3D11DeviceContext>,
-    pub factory: Box<IDXGIFactory>,
+    pub device: ID3D11Device,
+    pub context: ID3D11DeviceContext,
+    pub factory: IDXGIFactory,
+    pub feature_level: D3D_FEATURE_LEVEL,
     pub graphics_device: GraphicsDevice
 }
 
 impl GraphicsDevice {
-    fn create() {
+    pub fn create() -> WindowsGraphicsDevice{
         unsafe {
             let flags = D3D11_CREATE_DEVICE_DEBUG;
             let hmodule = HMODULE::default();
             let factory = CreateDXGIFactory::<IDXGIFactory>().unwrap();
-            let adapter = factory.EnumAdapters(0).unwrap();
+            //let adapter = factory.EnumAdapters(0).unwrap();
 
-            let mut other: Box<Option<ID3D11Device>> = Box::default();
-            //let adapter: *mut Option<IDXGIAdapter> = ptr::null_mut();
-            let device: *mut Option<ID3D11Device> = ptr::null_mut();
-            let context: *mut Option<ID3D11DeviceContext> = ptr::null_mut();
+            let mut device: Option<ID3D11Device> = None;
+            let mut context: Option<ID3D11DeviceContext> = None;
 
             let feature_levels = [
                 D3D_FEATURE_LEVEL_11_0,
@@ -45,10 +44,18 @@ impl GraphicsDevice {
                 flags,
                 Some(&feature_levels),
                 D3D11_SDK_VERSION,
-                Some(device),
+                Some(&mut device),
                 Some(&mut feature_level),
-                Some(context)
+                Some(&mut context)
             ).unwrap();
+
+            WindowsGraphicsDevice {
+                context: context.unwrap(),
+                device: device.unwrap(),
+                factory: factory,
+                feature_level: feature_level,
+                graphics_device: GraphicsDevice::default(),
+            }
         }
     }
 
