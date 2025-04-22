@@ -14,7 +14,7 @@ impl DepthFace {
 }
 
 impl DepthStencilState {
-    pub fn to_desc(&self) -> D3D11_DEPTH_STENCIL_DESC {
+    pub fn to_dx(&self) -> D3D11_DEPTH_STENCIL_DESC {
         D3D11_DEPTH_STENCIL_DESC {
             DepthEnable: bool_to_win_bool(self.depth_enable),
             StencilEnable: bool_to_win_bool(self.stencil_enable),

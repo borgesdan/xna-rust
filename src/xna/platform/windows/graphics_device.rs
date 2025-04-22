@@ -136,26 +136,15 @@ impl WindowsGraphicsDevice {
     }
 
     fn apply_depth_stencil_state(&mut self) {
-        let depth_stencil = &self.base.depth_stencil_state;
-
-        //TODO implementar depth stencil state
-
-        let description = D3D11_DEPTH_STENCIL_DESC {
-            DepthFunc: D3D11_COMPARISON_LESS_EQUAL,
-            ..Default::default()
-        };
+        let description =  self.base.depth_stencil_state.to_dx();
+        let device = self.device.as_ref().unwrap();
+        let context = self.context.as_ref().unwrap();
+        let mut dx_depth: Option<ID3D11DepthStencilState> = None;
 
         unsafe {
-            let device = self.device.as_ref().unwrap();
-            let context = self.context.as_ref().unwrap();
-
-            let mut dx_depth: Option<ID3D11DepthStencilState> = None;
-
-            // Initialize
             device.CreateDepthStencilState(&description, Some(&mut dx_depth))
                 .unwrap();
 
-            // Apply
             context.OMSetDepthStencilState(dx_depth.as_ref(), 0);
 
             self.depth_stencil_state = dx_depth;
@@ -163,12 +152,7 @@ impl WindowsGraphicsDevice {
     }
 
     fn apply_rasterizer_state(&mut self) {
-        let rasterizer = &self.base.rasterizer_state;
-
         //Convert
-
-        //TODO implementar rasterizer state
-
         let description = D3D11_RASTERIZER_DESC {
             CullMode: D3D11_CULL_BACK,
             FillMode: D3D11_FILL_SOLID,

@@ -4,7 +4,6 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
-pub mod graphics_device;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
