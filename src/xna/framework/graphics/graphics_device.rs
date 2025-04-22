@@ -9,17 +9,18 @@ use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFacto
 use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentationParameters, SamplerState, SamplerStateCollection};
 
+#[derive(Default)]
 pub struct WindowsGraphicsDevice {
-    pub device: ID3D11Device,
-    pub context: ID3D11DeviceContext,
-    pub factory: IDXGIFactory,
+    pub device: Option<ID3D11Device>,
+    pub context: Option<ID3D11DeviceContext>,
+    pub factory: Option<IDXGIFactory>,
     pub feature_level: D3D_FEATURE_LEVEL,
+    pub blend_state: Option<ID3D11BlendState>,
+    pub rasterizer_state: Option<ID3D11RasterizerState>,
+    pub depth_stencil_state: Option<ID3D11DepthStencilState>,
+    pub sampler_state_collection: Vec<Option<ID3D11SamplerState>>,
     pub background_color: Color,
     pub parameters: WindowsPresentationParameters,
-    pub blend_state: ID3D11BlendState,
-    pub rasterizer_state: ID3D11RasterizerState,
-    pub depth_stencil_state: ID3D11DepthStencilState,
-    pub sampler_state_collection: Vec<Option<ID3D11SamplerState>>,
     pub base: GraphicsDevice,
 }
 
@@ -65,9 +66,9 @@ impl GraphicsDevice {
             ).unwrap();
 
             WindowsGraphicsDevice {
-                context: context.unwrap(),
-                device: device.unwrap(),
-                factory: factory,
+                context: context,
+                device: device,
+                factory: Some(factory),
                 feature_level: feature_level,
                 background_color: Color::cornflower_blue(),
                 base: GraphicsDevice::default(),
@@ -82,8 +83,12 @@ impl WindowsGraphicsDevice {
         self.parameters = self.parameters;
 
         unsafe {
+            let factory = self.factory.as_ref().unwrap();
+            let context = self.context.as_ref().unwrap();
+            let device = self.device.as_ref().unwrap();
+
             //Window association
-            self.factory.MakeWindowAssociation(parameters.hwnd, DXGI_MWA_FLAGS::default())
+            factory.MakeWindowAssociation(parameters.hwnd, DXGI_MWA_FLAGS::default())
                 .unwrap();
 
             // Viewport
@@ -96,7 +101,7 @@ impl WindowsGraphicsDevice {
                 MinDepth: 0.0,
             }];
 
-            self.context.RSSetViewports(Some(&viewport));
+            context.RSSetViewports(Some(&viewport));
 
             // States
             self.apply_blend_state();
@@ -112,7 +117,10 @@ impl WindowsGraphicsDevice {
         }
 
         unsafe {
+            let device = self.device.as_ref().unwrap();
+            let context = self.context.as_ref().unwrap();
             let mut samplers : Vec<Option<ID3D11SamplerState>> = Vec::new();
+
 
             for i in 0..collection.samplers.len() {
                 let current = &collection.samplers[i];
@@ -121,12 +129,12 @@ impl WindowsGraphicsDevice {
                 let mut dx_sampler: Option<ID3D11SamplerState> = None;
 
                 //Initialize
-                self.device.CreateSamplerState(&description, Some(&mut dx_sampler)).unwrap();
+                device.CreateSamplerState(&description, Some(&mut dx_sampler)).unwrap();
 
             }
 
             //Apply
-            self.context.PSSetSamplers(0, Some(samplers.as_slice()));
+            context.PSSetSamplers(0, Some(samplers.as_slice()));
         }
     }
 
@@ -141,16 +149,19 @@ impl WindowsGraphicsDevice {
         };
 
         unsafe {
+            let device = self.device.as_ref().unwrap();
+            let context = self.context.as_ref().unwrap();
+
             let mut dx_depth: Option<ID3D11DepthStencilState> = None;
 
             // Initialize
-            self.device.CreateDepthStencilState(&description, Some(&mut dx_depth))
+            device.CreateDepthStencilState(&description, Some(&mut dx_depth))
                 .unwrap();
 
             // Apply
-            self.context.OMSetDepthStencilState(Some(&dx_depth), 0);
+            context.OMSetDepthStencilState(dx_depth.as_ref(), 0);
 
-            self.depth_stencil_state = dx_depth.unwrap();
+            self.depth_stencil_state = dx_depth;
         }
     }
 
@@ -171,16 +182,19 @@ impl WindowsGraphicsDevice {
         };
 
         unsafe {
+            let device = self.device.as_ref().unwrap();
+            let context = self.context.as_ref().unwrap();
+
             let mut dx_rasterizer: Option<ID3D11RasterizerState> = None;
             // Initialize
 
-            self.device.CreateRasterizerState(&description, Some(&mut dx_rasterizer))
+            device.CreateRasterizerState(&description, Some(&mut dx_rasterizer))
                 .unwrap();
 
             // Apply
-            self.context.RSSetState(Some(&dx_rasterizer));
+            context.RSSetState(dx_rasterizer.as_ref());
 
-            self.rasterizer_state = dx_rasterizer.unwrap();
+            self.rasterizer_state = dx_rasterizer;
         }
     }
 
@@ -207,7 +221,10 @@ impl WindowsGraphicsDevice {
 
             // Initialize
 
-            self.device.CreateBlendState(&description, Some(&mut dx_blend_state))
+            let device = self.device.as_ref().unwrap();
+            let context = self.context.as_ref().unwrap();
+
+            device.CreateBlendState(&description, Some(&mut dx_blend_state))
                 .unwrap();
 
             let factor = [1.0, 1.0, 1.0, 1.0];
@@ -215,9 +232,9 @@ impl WindowsGraphicsDevice {
 
             // Apply
 
-            self.context.OMSetBlendState(Some(&dx_blend_state), Some(&factor), sample_mask);
+            context.OMSetBlendState(dx_blend_state.as_ref(), Some(&factor), sample_mask);
 
-            self.blend_state = dx_blend_state.unwrap();
+            self.blend_state = dx_blend_state;
         }
     }
 }

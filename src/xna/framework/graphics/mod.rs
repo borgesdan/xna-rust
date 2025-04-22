@@ -103,6 +103,7 @@ pub struct BlendState {
     pub blend_factor: Color,
     pub multi_sample_mask: i32,
     pub alpha_to_coverage_enable: bool,
+    pub independent_blend_enable: bool,
     pub render_targets: [BlendRenderTarget; 8],
 }
 
