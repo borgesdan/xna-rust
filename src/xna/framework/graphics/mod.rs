@@ -166,10 +166,13 @@ pub struct RasterizerState {
     pub cull_mode: CullMode,
     pub fill_mode: FillMode,
     pub multi_sample_anti_alias: bool,
-    pub depth_bias: f32,
+    pub depth_bias: i32,
+    pub depth_bias_clamp: f32,
     pub slope_scale_depth_bias: f32,
     pub scissor_test_enable: bool,
     pub depth_clip_enable: bool,
+    pub antialiased_line_enable: bool,
+    pub front_counter_clockwise: bool
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]

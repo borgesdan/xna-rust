@@ -153,28 +153,15 @@ impl WindowsGraphicsDevice {
 
     fn apply_rasterizer_state(&mut self) {
         //Convert
-        let description = D3D11_RASTERIZER_DESC {
-            CullMode: D3D11_CULL_BACK,
-            FillMode: D3D11_FILL_SOLID,
-            MultisampleEnable: BOOL(1),
-            DepthBias: 0,
-            SlopeScaledDepthBias: 0.0,
-            ScissorEnable: BOOL(0),
-            AntialiasedLineEnable: BOOL(1),
-            ..Default::default()
-        };
+        let description = self.base.rasterizer_state.to_dx();
+        let device = self.device.as_ref().unwrap();
+        let context = self.context.as_ref().unwrap();
+        let mut dx_rasterizer: Option<ID3D11RasterizerState> = None;
 
         unsafe {
-            let device = self.device.as_ref().unwrap();
-            let context = self.context.as_ref().unwrap();
-
-            let mut dx_rasterizer: Option<ID3D11RasterizerState> = None;
-            // Initialize
-
             device.CreateRasterizerState(&description, Some(&mut dx_rasterizer))
                 .unwrap();
 
-            // Apply
             context.RSSetState(dx_rasterizer.as_ref());
 
             self.rasterizer_state = dx_rasterizer;
@@ -182,11 +169,7 @@ impl WindowsGraphicsDevice {
     }
 
     fn apply_blend_state(&mut self) {
-        let blend_state = &self.base.blend_state;
-
-        //Convert
-
-        let description = blend_state.to_dx();
+        let description = self.base.blend_state.to_dx();
         let device = self.device.as_ref().unwrap();
         let context = self.context.as_ref().unwrap();
         let mut dx_blend_state: Option<ID3D11BlendState> = None;
@@ -195,9 +178,9 @@ impl WindowsGraphicsDevice {
             device.CreateBlendState(&description, Some(&mut dx_blend_state))
                 .unwrap();
 
-            let blend_factor = blend_state.blend_factor.to_vector4();
+            let blend_factor = self.base.blend_state.blend_factor.to_vector4();
             let factor = [blend_factor.x, blend_factor.y, blend_factor.z, blend_factor.w];
-            let sample_mask = blend_state.multi_sample_mask;
+            let sample_mask = self.base.blend_state.multi_sample_mask;
 
             context.OMSetBlendState(dx_blend_state.as_ref(), Some(&factor), sample_mask);
 
