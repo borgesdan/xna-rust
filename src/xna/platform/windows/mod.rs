@@ -1,5 +1,6 @@
 pub mod depth_stencil_state;
 pub mod graphics_device;
+mod blend_state;
 
 use windows::core::BOOL;
 use windows::Win32::Foundation::{FALSE, TRUE};

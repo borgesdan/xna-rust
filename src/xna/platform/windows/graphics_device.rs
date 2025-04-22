@@ -186,40 +186,19 @@ impl WindowsGraphicsDevice {
 
         //Convert
 
-        let mut description = D3D11_BLEND_DESC::default();
-        description.AlphaToCoverageEnable = bool_to_win_bool(blend_state.alpha_to_coverage_enable);
-        description.IndependentBlendEnable = bool_to_win_bool(blend_state.independent_blend_enable);
-
-        let mut index = 0;
-        for target in &blend_state.render_targets {
-            description.RenderTarget[index].BlendEnable = bool_to_win_bool(target.enabled);
-            description.RenderTarget[index].SrcBlend = target.source.to_dx();
-            description.RenderTarget[index].DestBlend = target.destination.to_dx();
-            description.RenderTarget[index].BlendOp = target.operation.to_dx();
-            description.RenderTarget[index].SrcBlendAlpha = target.source_alpha.to_dx();
-            description.RenderTarget[index].DestBlendAlpha = target.destination_alpha.to_dx();
-            description.RenderTarget[index].BlendOpAlpha = target.operation_alpha.to_dx();
-            description.RenderTarget[index].RenderTargetWriteMask = target.write_mask.to_dx().0 as u8;
-
-            index += 1;
-        }
+        let description = blend_state.to_dx();
+        let device = self.device.as_ref().unwrap();
+        let context = self.context.as_ref().unwrap();
+        let mut dx_blend_state: Option<ID3D11BlendState> = None;
 
         unsafe {
-            let mut dx_blend_state: Option<ID3D11BlendState> = None;
-
-            // Initialize
-            let device = self.device.as_ref().unwrap();
-            let context = self.context.as_ref().unwrap();
-
             device.CreateBlendState(&description, Some(&mut dx_blend_state))
                 .unwrap();
 
             let blend_factor = blend_state.blend_factor.to_vector4();
-
             let factor = [blend_factor.x, blend_factor.y, blend_factor.z, blend_factor.w];
             let sample_mask = blend_state.multi_sample_mask;
 
-            // Apply
             context.OMSetBlendState(dx_blend_state.as_ref(), Some(&factor), sample_mask);
 
             self.blend_state = dx_blend_state;
