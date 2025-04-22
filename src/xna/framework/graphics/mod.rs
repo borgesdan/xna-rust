@@ -94,14 +94,8 @@ pub struct BlendRenderTarget {
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct BlendState {
-    pub alpha_blend_function: BlendFunction,
-    pub alpha_destination_blend: Blend,
-    pub alpha_source_blend: Blend,
-    pub color_blend_function: BlendFunction,
-    pub color_destination_blend: Blend,
-    pub color_source_blend: Blend,
     pub blend_factor: Color,
-    pub multi_sample_mask: i32,
+    pub multi_sample_mask: u32,
     pub alpha_to_coverage_enable: bool,
     pub independent_blend_enable: bool,
     pub render_targets: [BlendRenderTarget; 8],

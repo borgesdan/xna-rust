@@ -1,4 +1,5 @@
 use std::iter::Once;
+use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{Blend, BlendFunction, BlendRenderTarget, BlendState, ColorWriteChannels};
 
 impl BlendState {
@@ -6,6 +7,8 @@ impl BlendState {
         BlendState {
             alpha_to_coverage_enable: false,
             independent_blend_enable: false,
+            blend_factor: Color::white(),
+            multi_sample_mask: 0xffffffff,
             render_targets: [BlendRenderTarget{
                 enabled: true,
                 source: Blend::One,
@@ -21,42 +24,42 @@ impl BlendState {
     }
 
     pub fn opaque() -> BlendState {
-        BlendState {
-            color_source_blend: Blend::One,
-            alpha_source_blend: Blend::One,
-            color_destination_blend: Blend::Zero,
-            alpha_destination_blend: Blend::Zero,
-            ..Self::new()
-        }
+        let mut blend = BlendState::new();
+        blend.render_targets[0].source = Blend::One;
+        blend.render_targets[0].source_alpha = Blend::One;
+        blend.render_targets[0].destination = Blend::Zero;
+        blend.render_targets[0].destination_alpha = Blend::Zero;
+
+        blend
     }
 
     pub fn alpha_blend() -> BlendState {
-        BlendState {
-            color_source_blend: Blend::One,
-            alpha_source_blend: Blend::One,
-            color_destination_blend: Blend::InverseSourceAlpha,
-            alpha_destination_blend: Blend::InverseSourceAlpha,
-            ..Self::new()
-        }
+        let mut blend = BlendState::new();
+        blend.render_targets[0].source = Blend::One;
+        blend.render_targets[0].source_alpha = Blend::One;
+        blend.render_targets[0].destination = Blend::InverseSourceAlpha;
+        blend.render_targets[0].destination_alpha = Blend::InverseSourceAlpha;
+
+        blend
     }
 
     pub fn additive() -> BlendState {
-        BlendState {
-            color_source_blend: Blend::SourceAlpha,
-            alpha_source_blend: Blend::SourceAlpha,
-            color_destination_blend: Blend::One,
-            alpha_destination_blend: Blend::One,
-            ..Self::new()
-        }
+        let mut blend = BlendState::new();
+        blend.render_targets[0].source = Blend::SourceAlpha;
+        blend.render_targets[0].source_alpha = Blend::SourceAlpha;
+        blend.render_targets[0].destination = Blend::One;
+        blend.render_targets[0].destination_alpha = Blend::One;
+
+        blend
     }
 
     pub fn non_premultiplied() -> BlendState {
-        BlendState {
-            color_source_blend: Blend::SourceAlpha,
-            alpha_source_blend: Blend::SourceAlpha,
-            color_destination_blend: Blend::InverseSourceAlpha,
-            alpha_destination_blend: Blend::InverseSourceAlpha,
-            ..Self::new()
-        }
+        let mut blend = BlendState::new();
+        blend.render_targets[0].source = Blend::SourceAlpha;
+        blend.render_targets[0].source_alpha = Blend::SourceAlpha;
+        blend.render_targets[0].destination = Blend::InverseSourceAlpha;
+        blend.render_targets[0].destination_alpha = Blend::InverseSourceAlpha;
+
+        blend
     }
 }

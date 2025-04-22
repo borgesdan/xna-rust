@@ -8,6 +8,7 @@ use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE, D3D_DRIVER_TYPE_HARDWA
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIFactory1, DXGI_MWA_FLAGS};
 use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentationParameters, SamplerState, SamplerStateCollection};
+use crate::xna::Platform::windows::{blend_operation_to_d3dx_blend_op, blend_to_d3dx_blend, bool_to_win_bool, color_write_channels_to_d3dx_color_write_enable};
 
 #[derive(Default)]
 pub struct WindowsGraphicsDevice {
@@ -112,14 +113,14 @@ impl WindowsGraphicsDevice {
     fn apply_sampler_states(&mut self) {
         let collection = &self.base.sampler_state_collection;
 
-        if collection.samplers.is_empty(){
+        if collection.samplers.is_empty() {
             return;
         }
 
         unsafe {
             let device = self.device.as_ref().unwrap();
             let context = self.context.as_ref().unwrap();
-            let mut samplers : Vec<Option<ID3D11SamplerState>> = Vec::new();
+            let mut samplers: Vec<Option<ID3D11SamplerState>> = Vec::new();
 
 
             for i in 0..collection.samplers.len() {
@@ -130,7 +131,6 @@ impl WindowsGraphicsDevice {
 
                 //Initialize
                 device.CreateSamplerState(&description, Some(&mut dx_sampler)).unwrap();
-
             }
 
             //Apply
@@ -168,6 +168,8 @@ impl WindowsGraphicsDevice {
     fn apply_rasterizer_state(&mut self) {
         let rasterizer = &self.base.rasterizer_state;
 
+        //Convert
+
         //TODO implementar rasterizer state
 
         let description = D3D11_RASTERIZER_DESC {
@@ -199,39 +201,44 @@ impl WindowsGraphicsDevice {
     }
 
     fn apply_blend_state(&mut self) {
+        let blend_state = &self.base.blend_state;
+
+        //Convert
+
+        let mut description = D3D11_BLEND_DESC::default();
+        description.AlphaToCoverageEnable = bool_to_win_bool(blend_state.alpha_to_coverage_enable);
+        description.IndependentBlendEnable = bool_to_win_bool(blend_state.independent_blend_enable);
+
+        let mut index = 0;
+        for target in &blend_state.render_targets {
+            description.RenderTarget[index].BlendEnable = bool_to_win_bool(target.enabled);
+            description.RenderTarget[index].SrcBlend = blend_to_d3dx_blend(&target.source);
+            description.RenderTarget[index].DestBlend = blend_to_d3dx_blend(&target.destination);;
+            description.RenderTarget[index].BlendOp = blend_operation_to_d3dx_blend_op(&target.operation);
+            description.RenderTarget[index].SrcBlendAlpha = blend_to_d3dx_blend(&target.source_alpha);
+            description.RenderTarget[index].DestBlendAlpha = blend_to_d3dx_blend(&target.destination_alpha);
+            description.RenderTarget[index].BlendOpAlpha = blend_operation_to_d3dx_blend_op(&target.operation_alpha);
+            description.RenderTarget[index].RenderTargetWriteMask = color_write_channels_to_d3dx_color_write_enable(&target.write_mask).0 as u8;
+
+            index += 1;
+        }
+
         unsafe {
-            let blend_state = &self.base.blend_state;
-
-            let mut description = D3D11_BLEND_DESC::default();
-            description.AlphaToCoverageEnable = BOOL(blend_state.alpha_to_coverage_enable as i32);
-            description.AlphaToCoverageEnable = BOOL(1);
-
-            //TODO: implementar render targers
-
-            description.RenderTarget[0].BlendEnable = BOOL(1);
-            description.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-            description.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-            description.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-            description.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-            description.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-            description.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-            description.RenderTarget[0].RenderTargetWriteMask = 1;
-
             let mut dx_blend_state: Option<ID3D11BlendState> = None;
 
             // Initialize
-
             let device = self.device.as_ref().unwrap();
             let context = self.context.as_ref().unwrap();
 
             device.CreateBlendState(&description, Some(&mut dx_blend_state))
                 .unwrap();
 
-            let factor = [1.0, 1.0, 1.0, 1.0];
-            let sample_mask = 0xffffffff;
+            let blend_factor = blend_state.blend_factor.to_vector4();
+
+            let factor = [blend_factor.x, blend_factor.y, blend_factor.z, blend_factor.w];
+            let sample_mask = blend_state.multi_sample_mask;
 
             // Apply
-
             context.OMSetBlendState(dx_blend_state.as_ref(), Some(&factor), sample_mask);
 
             self.blend_state = dx_blend_state;
