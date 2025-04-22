@@ -8,7 +8,7 @@ use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE, D3D_DRIVER_TYPE_HARDWA
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIFactory1, DXGI_MWA_FLAGS};
 use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentationParameters, SamplerState, SamplerStateCollection};
-use crate::xna::Platform::windows::{blend_operation_to_d3dx_blend_op, blend_to_d3dx_blend, bool_to_win_bool, color_write_channels_to_d3dx_color_write_enable};
+use crate::xna::platform::windows::{blend_operation_to_d3dx_blend_op, blend_to_d3dx_blend, bool_to_win_bool, color_write_channels_to_d3dx_color_write_enable};
 
 #[derive(Default)]
 pub struct WindowsGraphicsDevice {

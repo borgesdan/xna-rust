@@ -77,7 +77,6 @@ pub enum ColorWriteChannels {
     Blue,
     Alpha,
     All,
-    None,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -130,22 +129,22 @@ pub enum ComparisonFunction {
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct DepthFace{
-    stencil_function: ComparisonFunction,
-    stencil_pass_operation: StencilOperation,
-    stencil_fail_operation: StencilOperation,
-    stencil_depth_fail_operation: StencilOperation,
+    pub stencil_function: ComparisonFunction,
+    pub stencil_pass_operation: StencilOperation,
+    pub stencil_fail_operation: StencilOperation,
+    pub stencil_depth_fail_operation: StencilOperation,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct DepthStencilState {
-    depth_enable: bool,
-    stencil_enable:bool,
-    depth_function: ComparisonFunction,
-    stencil_read_mask: u8,
-    stencil_write_mask: u8,
-    depth_write_mask: bool,
-    front_face: DepthFace,
-    back_face: DepthFace,
+    pub depth_enable: bool,
+    pub stencil_enable:bool,
+    pub depth_function: ComparisonFunction,
+    pub stencil_read_mask: u8,
+    pub stencil_write_mask: u8,
+    pub depth_write_mask: bool,
+    pub front_face: DepthFace,
+    pub back_face: DepthFace,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
