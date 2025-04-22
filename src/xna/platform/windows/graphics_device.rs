@@ -104,6 +104,7 @@ impl WindowsGraphicsDevice {
             // States
             self.apply_blend_state();
             self.apply_rasterizer_state();
+            self.apply_sampler_states();
         }
     }
 
@@ -114,23 +115,18 @@ impl WindowsGraphicsDevice {
             return;
         }
 
+        let device = self.device.as_ref().unwrap();
+        let context = self.context.as_ref().unwrap();
+        let mut samplers: Vec<Option<ID3D11SamplerState>> = Vec::new();
+
         unsafe {
-            let device = self.device.as_ref().unwrap();
-            let context = self.context.as_ref().unwrap();
-            let mut samplers: Vec<Option<ID3D11SamplerState>> = Vec::new();
-
-
-            for i in 0..collection.samplers.len() {
-                let current = &collection.samplers[i];
-
-                let description = D3D11_SAMPLER_DESC::default();
+            for sampler in &collection.samplers {
+                let description = sampler.to_dx();
                 let mut dx_sampler: Option<ID3D11SamplerState> = None;
 
-                //Initialize
                 device.CreateSamplerState(&description, Some(&mut dx_sampler)).unwrap();
             }
 
-            //Apply
             context.PSSetSamplers(0, Some(samplers.as_slice()));
         }
     }

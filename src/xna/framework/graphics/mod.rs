@@ -209,6 +209,8 @@ pub struct SamplerState {
     pub mip_map_level_of_detail_bias: f32,
     pub max_mip_level: f32,
     pub min_mip_level: f32,
+    pub border_color: Color,
+    pub comparison_function: ComparisonFunction
 }
 
 #[derive(Default, PartialEq, Clone)]
