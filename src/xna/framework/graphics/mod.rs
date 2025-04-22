@@ -129,31 +129,23 @@ pub enum ComparisonFunction {
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
-pub struct DepthStencilStateCounterClockWise {
-    pub depth_buffer_fail: StencilOperation,
-    pub stencil_fail: StencilOperation,
-    pub stencil_function: ComparisonFunction,
-    pub stencil_pass: StencilOperation,
-}
-
-#[derive(Default, Eq, PartialEq, Copy, Clone)]
-pub struct DepthStencilStateStencil {
-    pub enable: bool,
-    pub fail: StencilOperation,
-    pub function: ComparisonFunction,
-    pub mask: i32,
-    pub write_mask: i32,
-    pub pass: StencilOperation,
-    pub depth_buffer_fail: StencilOperation,
+pub struct DepthFace{
+    stencil_function: ComparisonFunction,
+    stencil_pass_operation: StencilOperation,
+    stencil_fail_operation: StencilOperation,
+    stencil_depth_fail_operation: StencilOperation,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct DepthStencilState {
-    pub counter_clock_wise: DepthStencilStateCounterClockWise,
-    pub stencil: DepthStencilStateStencil,
-    pub depth_buffer_enable: bool,
-    pub depth_buffer_write_enable: bool,
-    pub depth_buffer_function: ComparisonFunction,
+    depth_enable: bool,
+    stencil_enable:bool,
+    depth_function: ComparisonFunction,
+    stencil_read_mask: u8,
+    stencil_write_mask: u8,
+    depth_write_mask: bool,
+    front_face: DepthFace,
+    back_face: DepthFace,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
