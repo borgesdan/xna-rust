@@ -1,14 +1,11 @@
-use std::ptr;
-use std::boxed;
-use windows::core::{Param, BOOL};
+use windows::core::BOOL;
 use windows::Win32::Foundation::{HMODULE, HWND};
-use windows::Win32::Graphics::Direct3D;
-use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, D3D11CreateDeviceAndSwapChain, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND, D3D11_BLEND_DESC, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD, D3D11_COMPARISON_LESS_EQUAL, D3D11_CREATE_DEVICE_DEBUG, D3D11_CREATE_DEVICE_FLAG, D3D11_CULL_BACK, D3D11_CULL_MODE, D3D11_DEPTH_STENCIL_DESC, D3D11_FILL_SOLID, D3D11_RASTERIZER_DESC, D3D11_RENDER_TARGET_BLEND_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
-use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE, D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
-use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIFactory1, DXGI_MWA_FLAGS};
+use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_COMPARISON_LESS_EQUAL, D3D11_CREATE_DEVICE_DEBUG, D3D11_CULL_BACK, D3D11_DEPTH_STENCIL_DESC, D3D11_FILL_SOLID, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
+use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
+use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, DXGI_MWA_FLAGS};
 use crate::xna::framework::Color;
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentationParameters, SamplerState, SamplerStateCollection};
-use crate::xna::platform::windows::{blend_operation_to_d3dx_blend_op, blend_to_d3dx_blend, bool_to_win_bool, color_write_channels_to_d3dx_color_write_enable};
+use crate::xna::framework::graphics::{GraphicsDevice, IPackedVector, PresentationParameters};
+use crate::xna::platform::windows::bool_to_win_bool;
 
 #[derive(Default)]
 pub struct WindowsGraphicsDevice {
@@ -212,13 +209,13 @@ impl WindowsGraphicsDevice {
         let mut index = 0;
         for target in &blend_state.render_targets {
             description.RenderTarget[index].BlendEnable = bool_to_win_bool(target.enabled);
-            description.RenderTarget[index].SrcBlend = blend_to_d3dx_blend(&target.source);
-            description.RenderTarget[index].DestBlend = blend_to_d3dx_blend(&target.destination);;
-            description.RenderTarget[index].BlendOp = blend_operation_to_d3dx_blend_op(&target.operation);
-            description.RenderTarget[index].SrcBlendAlpha = blend_to_d3dx_blend(&target.source_alpha);
-            description.RenderTarget[index].DestBlendAlpha = blend_to_d3dx_blend(&target.destination_alpha);
-            description.RenderTarget[index].BlendOpAlpha = blend_operation_to_d3dx_blend_op(&target.operation_alpha);
-            description.RenderTarget[index].RenderTargetWriteMask = color_write_channels_to_d3dx_color_write_enable(&target.write_mask).0 as u8;
+            description.RenderTarget[index].SrcBlend = target.source.to_dx();
+            description.RenderTarget[index].DestBlend = target.destination.to_dx();
+            description.RenderTarget[index].BlendOp = target.operation.to_dx();
+            description.RenderTarget[index].SrcBlendAlpha = target.source_alpha.to_dx();
+            description.RenderTarget[index].DestBlendAlpha = target.destination_alpha.to_dx();
+            description.RenderTarget[index].BlendOpAlpha = target.operation_alpha.to_dx();
+            description.RenderTarget[index].RenderTargetWriteMask = target.write_mask.to_dx().0 as u8;
 
             index += 1;
         }

@@ -1,4 +1,5 @@
 pub mod depth_stencil_state;
+pub mod graphics_device;
 
 use windows::core::BOOL;
 use windows::Win32::Foundation::{FALSE, TRUE};
