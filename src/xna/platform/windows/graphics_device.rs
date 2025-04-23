@@ -4,7 +4,7 @@ use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, 
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, DXGI_MWA_FLAGS};
 use crate::xna::framework::Color;
-use crate::xna::framework::graphics::{GraphicsDevice, IPackedVector, PresentationParameters};
+use crate::xna::framework::graphics::{GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters};
 use crate::xna::platform::windows::bool_to_win_bool;
 
 #[derive(Default)]
@@ -77,7 +77,7 @@ impl GraphicsDevice {
 }
 
 impl WindowsGraphicsDevice {
-    pub fn initialize(&mut self, parameters: &WindowsPresentationParameters) {
+    pub fn initialize(&mut self) {
         self.parameters = self.parameters;
 
         unsafe {
@@ -86,15 +86,15 @@ impl WindowsGraphicsDevice {
             let device = self.device.as_ref().unwrap();
 
             //Window association
-            factory.MakeWindowAssociation(parameters.hwnd, DXGI_MWA_FLAGS::default())
+            factory.MakeWindowAssociation(self.parameters.hwnd, DXGI_MWA_FLAGS::default())
                 .unwrap();
 
             // Viewport
             let viewport = [D3D11_VIEWPORT {
                 TopLeftX: 0.0,
                 TopLeftY: 0.0,
-                Width: parameters.base.back_buffer_width as f32,
-                Height: parameters.base.back_buffer_height as f32,
+                Width: self.parameters.base.back_buffer_width as f32,
+                Height: self.parameters.base.back_buffer_height as f32,
                 MaxDepth: 1.0,
                 MinDepth: 0.0,
             }];
@@ -105,6 +105,18 @@ impl WindowsGraphicsDevice {
             self.apply_blend_state();
             self.apply_rasterizer_state();
             self.apply_sampler_states();
+
+            // Presentation
+            let vsync: i32;
+
+            match self.parameters.base.presentation_interval {
+                PresentInterval::Default => vsync = 1,
+                PresentInterval::One => vsync = 1,
+                PresentInterval::Two  => vsync = 2,
+                PresentInterval::Immediate => vsync = 0,
+            }
+
+
         }
     }
 
