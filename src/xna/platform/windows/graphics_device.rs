@@ -2,7 +2,7 @@ use windows::core::BOOL;
 use windows::Win32::Foundation::{HMODULE, HWND};
 use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_COMPARISON_LESS_EQUAL, D3D11_CREATE_DEVICE_DEBUG, D3D11_CULL_BACK, D3D11_DEPTH_STENCIL_DESC, D3D11_FILL_SOLID, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
-use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, DXGI_MWA_FLAGS};
+use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, IDXGISwapChain, DXGI_MWA_FLAGS, DXGI_PRESENT};
 use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters};
 use crate::xna::platform::windows::bool_to_win_bool;
@@ -15,6 +15,7 @@ pub struct WindowsGraphicsDevice {
     pub feature_level: D3D_FEATURE_LEVEL,
     pub blend_state: Option<ID3D11BlendState>,
     pub rasterizer_state: Option<ID3D11RasterizerState>,
+    pub swap_chain: Option<IDXGISwapChain>,
     pub depth_stencil_state: Option<ID3D11DepthStencilState>,
     pub sampler_state_collection: Vec<Option<ID3D11SamplerState>>,
     pub background_color: Color,
@@ -116,7 +117,20 @@ impl WindowsGraphicsDevice {
                 PresentInterval::Immediate => vsync = 0,
             }
 
+            //Swap Chain
+            let swap_chain = self.base.swap_chain.initialize(self);
+            self.swap_chain = swap_chain;
 
+            //Render Target
+        }
+    }
+
+    pub fn present(&self) {
+        unsafe {
+            self.swap_chain.as_ref().unwrap()
+                .Present(1, DXGI_PRESENT::default()).unwrap();
+
+            //TODO: Set render target
         }
     }
 
@@ -195,4 +209,5 @@ impl WindowsGraphicsDevice {
             self.blend_state = dx_blend_state;
         }
     }
+
 }
