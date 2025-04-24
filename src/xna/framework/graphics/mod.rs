@@ -4,6 +4,7 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
+mod swap_chain;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -253,11 +254,11 @@ pub enum SwapEffect {
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct PresentationParameters {
-    pub back_buffer_width: i32,
-    pub back_buffer_height: i32,
+    pub back_buffer_width: u32,
+    pub back_buffer_height: u32,
     pub back_buffer_format: SurfaceFormat,
     pub is_full_screen: bool,
-    pub multi_sample_count: i32,
+    pub multi_sample_count: u32,
     pub presentation_interval: PresentInterval,
     pub depth_stencil_format: DepthFormat,
     pub presentation_swap_effect: SwapEffect
@@ -284,12 +285,6 @@ pub struct RenderTarget {
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
-pub struct Rational {
-    numerator: u32,
-    denominator: u32
-}
-
-#[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub enum ScanlineOrder {
     #[default]
     Unspecified,
@@ -299,7 +294,7 @@ pub enum ScanlineOrder {
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
-pub enum Scaling {
+pub enum DisplayModeScaling {
     #[default]
     Unspecified,
     Centered,
@@ -308,12 +303,13 @@ pub enum Scaling {
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
 pub struct DisplayMode {
-    width: u32,
-    height: u32,
-    refresh_rate: Rational,
-    format: SurfaceFormat,
-    scanline_order: ScanlineOrder,
-    scaling: Scaling
+    pub width: u32,
+    pub height: u32,
+    pub refresh_rate_numerator: u32,
+    pub refresh_rate_denominator: u32,
+    pub format: SurfaceFormat,
+    pub scanline_order: ScanlineOrder,
+    pub scaling: DisplayModeScaling
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -348,14 +344,14 @@ pub enum SwapChainFlag {
 
 #[derive(Default, PartialEq, Copy, Clone)]
 pub struct SwapChain {
-    display: DisplayMode,
-    sample_count: u32,
-    sample_quality: u32,
-    usage: SurfaceUsage,
-    buffer_count: u32,
-    windowed: bool,
-    swap_effect: SwapEffect,
-    flags: SwapChainFlag,
+    pub display: DisplayMode,
+    pub sample_count: u32,
+    pub sample_quality: u32,
+    pub usage: SurfaceUsage,
+    pub buffer_count: u32,
+    pub windowed: bool,
+    pub swap_effect: SwapEffect,
+    pub flags: SwapChainFlag,
 }
 
 #[derive(Default)]
@@ -367,7 +363,8 @@ pub struct GraphicsDevice {
     pub sampler_state_collection: SamplerStateCollection,
     pub presentation_parameters: PresentationParameters,
     pub viewport: Viewport,
-    pub render_target: RenderTarget
+    pub render_target: RenderTarget,
+    pub swap_chain: SwapChain,
 }
 
 pub enum DataFormat {
