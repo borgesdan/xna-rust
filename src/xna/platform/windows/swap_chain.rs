@@ -1,3 +1,4 @@
+use windows::core::IUnknown;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
 use windows::Win32::Graphics::Dxgi::{IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
@@ -25,10 +26,10 @@ impl SwapChain {
     pub fn initialize(&self, w_device: &WindowsGraphicsDevice) -> Option<IDXGISwapChain> {
         let desc = self.to_dx();
         let factory = w_device.factory.as_ref().unwrap();
-        let device = w_device.device.as_ref();
+        let device = w_device.device.clone();
         let mut swap_chain: Option<IDXGISwapChain> = None;
         unsafe{
-            factory.CreateSwapChain(device, &desc, &mut swap_chain).unwrap();
+            factory.CreateSwapChain(Some(&device), &desc, &mut swap_chain).unwrap();
         }
 
         return swap_chain;

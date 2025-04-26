@@ -1,11 +1,12 @@
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HMODULE, HWND};
-use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_COMPARISON_LESS_EQUAL, D3D11_CREATE_DEVICE_DEBUG, D3D11_CULL_BACK, D3D11_DEPTH_STENCIL_DESC, D3D11_FILL_SOLID, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
+use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11RenderTargetView, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_COMPARISON_LESS_EQUAL, D3D11_CREATE_DEVICE_DEBUG, D3D11_CULL_BACK, D3D11_DEPTH_STENCIL_DESC, D3D11_FILL_SOLID, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, IDXGISwapChain, DXGI_MWA_FLAGS, DXGI_PRESENT};
 use crate::xna::framework::Color;
 use crate::xna::framework::graphics::{GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters};
 use crate::xna::platform::windows::bool_to_win_bool;
+use crate::xna::platform::windows::render_target_2d::WindowsRenderTarget2D;
 
 #[derive(Default)]
 pub struct WindowsGraphicsDevice {
@@ -17,6 +18,7 @@ pub struct WindowsGraphicsDevice {
     pub rasterizer_state: Option<ID3D11RasterizerState>,
     pub swap_chain: Option<IDXGISwapChain>,
     pub depth_stencil_state: Option<ID3D11DepthStencilState>,
+    pub render_target: Option<WindowsRenderTarget2D>,
     pub sampler_state_collection: Vec<Option<ID3D11SamplerState>>,
     pub background_color: Color,
     pub parameters: WindowsPresentationParameters,
@@ -122,6 +124,14 @@ impl WindowsGraphicsDevice {
             self.swap_chain = swap_chain;
 
             //Render Target
+            let mut render_target = self.base.render_target.from_back_buffer(self);
+            render_target.initialize(self);
+
+            let render_views = [render_target.view.clone()];
+
+            self.context.as_ref().unwrap().OMSetRenderTargets(Some(&render_views), None);
+
+            self.render_target = Some(render_target);
         }
     }
 
@@ -130,8 +140,24 @@ impl WindowsGraphicsDevice {
             self.swap_chain.as_ref().unwrap()
                 .Present(1, DXGI_PRESENT::default()).unwrap();
 
-            //TODO: Set render target
+            let view = self.render_target.as_ref().unwrap().view.clone();
+            let render_views = [view];
+            self.context.as_ref().unwrap().OMSetRenderTargets(Some(&render_views), None);
         }
+    }
+
+    pub fn clear(&self, color: &Color) {
+        let rgba = color.to_vector4();
+
+        let background = [rgba.x, rgba.y, rgba.z, rgba.w];
+
+        let render_target_view = self.render_target.as_ref().unwrap().view.clone();
+
+        unsafe {
+            self.context.as_ref().unwrap()
+                .ClearRenderTargetView(render_target_view.as_ref(), &background);
+        }
+
     }
 
     fn apply_sampler_states(&mut self) {

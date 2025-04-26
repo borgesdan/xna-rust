@@ -276,12 +276,14 @@ pub struct Viewport {
 
 #[derive(Default, PartialEq, Copy, Clone)]
 pub struct Texture2D {
-
+    pub width: u32,
+    pub height: u32,
+    pub format: SurfaceFormat,
 }
 
 #[derive(Default, PartialEq, Copy, Clone)]
-pub struct RenderTarget {
-
+pub struct RenderTarget2D {
+    base: Texture2D
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -363,7 +365,7 @@ pub struct GraphicsDevice {
     pub sampler_state_collection: SamplerStateCollection,
     pub presentation_parameters: PresentationParameters,
     pub viewport: Viewport,
-    pub render_target: RenderTarget,
+    pub render_target: RenderTarget2D,
     pub swap_chain: SwapChain,
 }
 
