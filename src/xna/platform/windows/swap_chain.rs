@@ -1,7 +1,7 @@
-use windows::core::IUnknown;
+use windows::core::{IUnknown, Interface};
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
-use windows::Win32::Graphics::Dxgi::{IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
+use windows::Win32::Graphics::Dxgi::{IDXGIDevice, IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
 use crate::xna::framework::graphics::SwapChain;
 use crate::xna::platform::windows::bool_to_win_bool;
 use crate::xna::platform::windows::graphics_device::WindowsGraphicsDevice;
@@ -26,10 +26,10 @@ impl SwapChain {
     pub fn initialize(&self, w_device: &WindowsGraphicsDevice) -> Option<IDXGISwapChain> {
         let desc = self.to_dx();
         let factory = w_device.factory.as_ref().unwrap();
-        let device = w_device.device.clone();
+        let device= w_device.device.as_ref().unwrap();
         let mut swap_chain: Option<IDXGISwapChain> = None;
         unsafe{
-            factory.CreateSwapChain(Some(&device), &desc, &mut swap_chain).unwrap();
+            factory.CreateSwapChain(device, &desc, &mut swap_chain).unwrap();
         }
 
         return swap_chain;
