@@ -4,7 +4,8 @@ pub mod blend_state;
 pub mod depth_stencil_state;
 pub mod rasterizer_state;
 pub mod sampler_state;
-mod swap_chain;
+pub mod swap_chain;
+pub mod graphics_device;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 
@@ -24,7 +25,7 @@ pub struct Bgr565 {
     packed_value: u16,
 }
 
-#[derive(Default)]
+#[derive(Default, Eq, PartialEq, Clone)]
 pub struct GraphicsAdapter {
     pub index: u32,
     pub description: String,
@@ -356,7 +357,7 @@ pub struct SwapChain {
     pub flags: SwapChainFlag,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone)]
 pub struct GraphicsDevice {
     pub adapter: GraphicsAdapter,
     pub blend_state: BlendState,

@@ -13,26 +13,40 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use crate::xna::framework::{Color, Point};
 use crate::xna::csharp::forms::Screen;
 use crate::xna::framework::game::{GameWindow, GameWindowStyle};
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice};
+use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat, SwapEffect};
 
 fn main() {
 
-    let device = GraphicsDevice::create();
+    let g_device = GraphicsDevice::new();
+    let mut device = g_device.create();
+    let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" ).unwrap();
 
-//     let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" );
-//
-//     let mut msg = MSG::default();
-//     unsafe {
-//         while GetMessageW(&mut msg, None, 0, 0).into() {
-//             TranslateMessage(&msg);
-//             DispatchMessageW(&msg);
-//
-//             if msg.message == WM_QUIT {
-//                 break;
-//             }
-//         }
-//     }
-// return;
+    device.base.presentation_parameters = PresentationParameters {
+        back_buffer_format: SurfaceFormat::Color,
+        back_buffer_height: 600,
+        back_buffer_width: 800,
+        is_full_screen: false,
+        presentation_swap_effect: SwapEffect::FlipDiscard,
+
+        ..Default::default()
+    };
+
+    device.parameters.hwnd = window.hwnd;
+
+    device.initialize();
+
+    let mut msg = MSG::default();
+    unsafe {
+        while GetMessageW(&mut msg, None, 0, 0).into() {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+
+            if msg.message == WM_QUIT {
+                break;
+            }
+        }
+    }
+return;
 
 
 

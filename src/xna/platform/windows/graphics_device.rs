@@ -32,7 +32,7 @@ pub struct WindowsPresentationParameters {
 }
 
 impl GraphicsDevice {
-    pub fn create() -> WindowsGraphicsDevice {
+    pub fn create(&self) -> WindowsGraphicsDevice {
         unsafe {
             let flags = D3D11_CREATE_DEVICE_DEBUG;
             let hmodule = HMODULE::default();
@@ -72,7 +72,7 @@ impl GraphicsDevice {
                 factory: Some(factory),
                 feature_level: feature_level,
                 background_color: Color::cornflower_blue(),
-                base: GraphicsDevice::default(),
+                base: self.clone(),
                 ..Default::default()
             }
         }
