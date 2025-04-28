@@ -94,9 +94,28 @@ impl TimeSpan {
         (self.ticks / Self::TICKS_PER_SECOND) as f64
     }
 
-    pub fn add(time_span: &TimeSpan) -> Self {
-        //TODO:
-        TimeSpan {ticks: 0}
+    pub fn add(&self, time_span: &TimeSpan) -> Self {
+        TimeSpan {ticks: self.ticks + time_span.ticks }
+    }
+
+    pub fn subtract(&self, time_span: &TimeSpan) -> Self {
+        TimeSpan {ticks: self.ticks - time_span.ticks }
+    }
+
+    pub fn multiply(&self, factor: f64) -> Self {
+        TimeSpan {ticks: (self.ticks as f64 * factor) as i64 }
+    }
+
+    pub fn divide(&self, divisor: f64) -> Self {
+        TimeSpan {ticks: (self.ticks as f64 / divisor) as i64 }
+    }
+
+    pub fn divide_timespan(&self, ts: &TimeSpan) -> Self {
+        TimeSpan {ticks: self.ticks / ts.ticks }
+    }
+
+    pub fn negate(&self) -> Self {
+        TimeSpan { ticks: -self.ticks }
     }
 
     pub fn from_days_f(value: f64) -> Result<Self, Exception> {
