@@ -6,6 +6,7 @@ use thiserror::Error;
 use windows::core::imp::HMODULE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 use crate::xna::framework::{Color, Rectangle};
+use crate::xna::framework::graphics::GraphicsDevice;
 
 pub enum DisplayOrientation {
     Default,
@@ -29,7 +30,7 @@ pub enum GameWindowStyle {
     BorderlessFullScreen
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, PartialEq, Clone)]
 pub struct GameWindow {
     pub window_pos_x: i32,
     pub window_pos_y: i32,
@@ -39,7 +40,8 @@ pub struct GameWindow {
     pub window_style: GameWindowStyle,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone)]
 pub struct Game {
-
+    game_window: GameWindow,
+    graphics_device: GraphicsDevice,
 }
