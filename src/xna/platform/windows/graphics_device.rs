@@ -18,7 +18,7 @@ pub struct WindowsGraphicsDevice {
     pub rasterizer_state: Option<ID3D11RasterizerState>,
     pub swap_chain: Option<IDXGISwapChain>,
     pub depth_stencil_state: Option<ID3D11DepthStencilState>,
-    pub render_target: Option<WindowsRenderTarget2D>,
+    pub render_target: Option<ID3D11RenderTargetView>,
     pub sampler_state_collection: Vec<Option<ID3D11SamplerState>>,
     pub background_color: Color,
     pub parameters: WindowsPresentationParameters,
@@ -131,7 +131,7 @@ impl WindowsGraphicsDevice {
 
             self.context.as_ref().unwrap().OMSetRenderTargets(Some(&render_views), None);
 
-            self.render_target = Some(render_target);
+            self.render_target = render_target.view;
         }
     }
 
@@ -140,8 +140,10 @@ impl WindowsGraphicsDevice {
             self.swap_chain.as_ref().unwrap()
                 .Present(1, DXGI_PRESENT::default()).unwrap();
 
-            let view = self.render_target.as_ref().unwrap().view.clone();
-            let render_views = [view];
+            let view = self.render_target.as_ref().unwrap();
+
+            let render_views = [Some(view.clone())];
+
             self.context.as_ref().unwrap().OMSetRenderTargets(Some(&render_views), None);
         }
     }
@@ -151,11 +153,11 @@ impl WindowsGraphicsDevice {
 
         let background = [rgba.x, rgba.y, rgba.z, rgba.w];
 
-        let render_target_view = self.render_target.as_ref().unwrap().view.clone();
+        let render_target_view = self.render_target.as_ref().unwrap();
 
         unsafe {
             self.context.as_ref().unwrap()
-                .ClearRenderTargetView(render_target_view.as_ref(), &background);
+                .ClearRenderTargetView(render_target_view, &background);
         }
 
     }

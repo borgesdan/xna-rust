@@ -1,4 +1,4 @@
-use windows::Win32::Graphics::Direct3D11::{ID3D11RenderTargetView, ID3D11Texture2D, D3D11_RENDER_TARGET_VIEW_DESC};
+use windows::Win32::Graphics::Direct3D11::{ID3D11RenderTargetView, ID3D11Texture2D, D3D11_RENDER_TARGET_VIEW_DESC, D3D11_RENDER_TARGET_VIEW_DESC_0, D3D11_RTV_DIMENSION, D3D11_RTV_DIMENSION_TEXTURE2D, D3D11_TEX2D_RTV, D3D11_TEXTURE2D_DESC};
 use windows::Win32::Graphics::Dxgi::IDXGISwapChain1;
 use crate::xna::framework::graphics::RenderTarget2D;
 use crate::xna::platform::windows::graphics_device::WindowsGraphicsDevice;
@@ -16,10 +16,18 @@ impl RenderTarget2D {
         let swap_chain = g_device.swap_chain.as_ref().unwrap();
         unsafe {
             let result = swap_chain.GetBuffer::<ID3D11Texture2D>(0).unwrap();
+            let mut result_desc = D3D11_TEXTURE2D_DESC::default();
+
+            result.GetDesc(&mut result_desc);
 
             WindowsRenderTarget2D {
                 base: WindowsTexture2D {
                     texture: Some(result),
+                    ..Default::default()
+                },
+                description: D3D11_RENDER_TARGET_VIEW_DESC {
+                    ViewDimension: D3D11_RTV_DIMENSION_TEXTURE2D,
+                    Format: result_desc.Format,
                     ..Default::default()
                 },
                 ..Default::default()
