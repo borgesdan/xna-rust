@@ -1,14 +1,38 @@
 pub mod forms;
+pub mod time_span;
 
 use std::str;
 use thiserror::Error;
 
-#[derive(Default)]
+#[derive(Default, Eq, PartialEq, Clone, Copy)]
 struct Rectangle {
     pub x : i32,
     pub y : i32,
     pub width : i32,
     pub height : i32,
+}
+
+#[derive(Default, Eq, PartialEq, Clone, Copy)]
+struct TimeSpan {
+    ticks: i64,
+}
+
+#[derive(Error, Debug, Default, Eq, PartialEq, Clone)]
+#[error("{h_result}: {message}")]
+pub struct Exception {
+    pub message: String,
+    pub inner: Option<Exception>,
+    pub h_result: isize,
+}
+
+impl Exception {
+    pub fn new_out_of_range(message: &str, inner: Option<Exception>) -> Self {
+        Exception {
+            message: message.to_string(),
+            inner,
+            h_result: 0x80004003,
+        }
+    }
 }
 
 impl Rectangle {
