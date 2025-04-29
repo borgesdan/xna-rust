@@ -1,10 +1,10 @@
 use windows::Win32::System::Performance::QueryPerformanceCounter;
 use crate::xna::csharp::Exception;
-use crate::xna::platform::windows::StepTime;
+use crate::xna::platform::windows::StepTimer;
 
-impl StepTime {
+impl StepTimer {
     pub fn new() ->Self {
-        StepTime {
+        StepTimer {
             is_fixed_time_step: false,
             target_elapsed_ticks: Self::TICKS_PER_SECOND,
             ..Default::default()
@@ -52,7 +52,7 @@ impl StepTime {
         }
     }
 
-    fn tick<FUpdate>(&mut self, update: &FUpdate) -> Result<(), Exception> where FUpdate: Fn(){
+    pub fn tick<FUpdate>(&mut self, update: &FUpdate) -> Result<(), Exception> where FUpdate: Fn(){
         let mut current_time : i64 = 0;
 
         unsafe {

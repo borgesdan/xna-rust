@@ -6,7 +6,9 @@ pub mod sampler_state;
 pub mod swap_chain;
 mod render_target_2d;
 pub mod texture_2d;
-pub mod step_time;
+pub mod step_timer;
+pub mod game;
+mod game_window;
 
 use windows::core::BOOL;
 use windows::Win32::Foundation::{FALSE, TRUE};
@@ -16,7 +18,7 @@ use windows::Win32::Graphics::Dxgi::{DXGI_SCALING, DXGI_SURFACE_DESC, DXGI_SWAP_
 use crate::xna::framework::graphics::{Blend, BlendFunction, ColorWriteChannels, ComparisonFunction, CullMode, DisplayMode, DisplayModeScaling, FillMode, ScanlineOrder, StencilOperation, SurfaceFormat, SurfaceUsage, SwapChainFlag, SwapEffect, TextureAddressMode, TextureFilter};
 
 #[derive(Default, Eq, PartialEq, Clone, Copy)]
-struct StepTime {
+struct StepTimer {
     frequency: i64,
     last_time: i64,
     max_delta: u64,

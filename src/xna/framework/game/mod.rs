@@ -1,5 +1,5 @@
-pub mod game_window;
 pub mod game;
+pub mod game_window;
 
 use std::io::IntoInnerError;
 use std::ops::Deref;
@@ -44,16 +44,16 @@ pub struct GameWindow {
 
 #[derive(Default, PartialEq, Eq, Copy, Clone)]
 pub struct GameTime {
-    elapsed_time: TimeSpan,
-    is_slowly: bool,
-    total_time: TimeSpan,
+    pub elapsed_time: TimeSpan,
+    pub is_slowly: bool,
+    pub total_time: TimeSpan,
 }
 
 #[derive(Default, PartialEq, Clone)]
 pub struct Game {
-    game_window: Option<GameWindow>,
-    graphics_device: Option<GraphicsDevice>,
-    target_elapsed_time: TimeSpan,
-    game_time: GameTime,
-    is_fixed_time_step: bool,
+    pub game_window: Option<GameWindow>,
+    pub graphics_device: Option<GraphicsDevice>,
+    pub target_elapsed_time: TimeSpan,
+    pub current_game_time: GameTime,
+    pub is_fixed_time_step: bool,
 }
