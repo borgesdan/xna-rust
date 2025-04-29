@@ -33,27 +33,28 @@ impl TimeSpan {
     }
 
     pub fn hours(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_HOUR % Self::HOURS_PER_DAY as i64)) as i32
+        (self.ticks / Self::TICKS_PER_HOUR % Self::HOURS_PER_DAY as i64) as i32
     }
 
     pub fn milliseconds(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_MILLISECOND % Self::MILLISECONDS_PER_SECOND)) as i32
+        (self.ticks / Self::TICKS_PER_MILLISECOND % Self::MILLISECONDS_PER_SECOND) as i32
     }
 
     pub fn microseconds(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_MICROSECOND % Self::MICROSECONDS_PER_MILLISECOND)) as i32
+        (self.ticks / Self::TICKS_PER_MICROSECOND % Self::MICROSECONDS_PER_MILLISECOND) as i32
     }
 
     pub fn nanoseconds(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_MICROSECOND * Self::NANOSECONDS_PER_TICK)) as i32
+        (self.ticks / Self::TICKS_PER_MICROSECOND * Self::NANOSECONDS_PER_TICK) as i32
     }
 
+    #[deny(unconditional_panic)]
     pub fn minutes(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_MINUTE % Self::MINUTES_PER_HOUR)) as i32
+        (self.ticks / Self::TICKS_PER_MINUTE % Self::MINUTES_PER_HOUR) as i32
     }
 
     pub fn seconds(&self) -> i32 {
-        (self.ticks / (Self::TICKS_PER_SECOND % Self::SECONDS_PER_MINUTE)) as i32
+        (self.ticks / Self::TICKS_PER_SECOND % Self::SECONDS_PER_MINUTE) as i32
     }
 
     pub fn total_days(&self) -> f64 {
@@ -188,7 +189,7 @@ impl TimeSpan {
     pub const TICKS_PER_SECOND: i64 = Self::TICKS_PER_MILLISECOND * 1000;
     pub const TICKS_PER_MINUTE: i64 = Self::TICKS_PER_SECOND * 60;
     pub const TICKS_PER_HOUR: i64 = Self::TICKS_PER_MINUTE * 60;
-    pub const TICKS_PER_DAY: i64 = Self::TICKS_PER_HOUR * 24;
+    pub const TICKS_PER_DAY: i64 = 36_000_000_000;
     pub const TICKS_PER_TENTH_SECOND: i64 = Self::TICKS_PER_MILLISECOND * 100;
 
     pub const MICROSECONDS_PER_MILLISECOND: i64 = Self::TICKS_PER_MILLISECOND / Self::TICKS_PER_MICROSECOND;
@@ -209,7 +210,7 @@ impl TimeSpan {
     pub const MINUTES_PER_HOUR: i64 = Self::TICKS_PER_HOUR / Self::TICKS_PER_MINUTE;
     pub const MINUTES_PER_DAY: i64 = Self::TICKS_PER_DAY / Self::TICKS_PER_MINUTE;
 
-    pub const HOURS_PER_DAY: i32 = (Self::TICKS_PER_DAY / Self::TICKS_PER_HOUR) as i32;
+    pub const HOURS_PER_DAY: i32 = 24;
 
     pub const MIN_TICKS: i64 = i64::MIN;
     pub const MAX_TICKS: i64 = i64::MAX;

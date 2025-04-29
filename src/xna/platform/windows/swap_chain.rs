@@ -2,7 +2,6 @@ use windows::core::{IUnknown, Interface};
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
 use windows::Win32::Graphics::Dxgi::{IDXGIDevice, IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
-use log::debug;
 use crate::xna::framework::graphics::SwapChain;
 use crate::xna::platform::windows::bool_to_win_bool;
 use crate::xna::platform::windows::graphics_device::WindowsGraphicsDevice;

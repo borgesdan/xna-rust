@@ -5,7 +5,7 @@ use std::str;
 use thiserror::Error;
 
 #[derive(Default, Eq, PartialEq, Clone, Copy)]
-struct Rectangle {
+pub struct Rectangle {
     pub x : i32,
     pub y : i32,
     pub width : i32,
@@ -13,7 +13,7 @@ struct Rectangle {
 }
 
 #[derive(Default, Eq, PartialEq, Clone, Copy)]
-struct TimeSpan {
+pub struct TimeSpan {
     ticks: i64,
 }
 
@@ -21,7 +21,7 @@ struct TimeSpan {
 #[error("{h_result}: {message}")]
 pub struct Exception {
     pub message: String,
-    pub inner: Option<Exception>,
+    pub inner: Box<Exception>,
     pub h_result: isize,
 }
 
@@ -29,7 +29,7 @@ impl Exception {
     pub fn new_out_of_range(message: &str, inner: Option<Exception>) -> Self {
         Exception {
             message: message.to_string(),
-            inner,
+            inner: Box::default(),
             h_result: 0x80004003,
         }
     }

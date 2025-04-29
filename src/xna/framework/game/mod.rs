@@ -1,10 +1,12 @@
 pub mod game_window;
+pub mod game;
 
 use std::io::IntoInnerError;
 use std::ops::Deref;
 use thiserror::Error;
 use windows::core::imp::HMODULE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
+use crate::xna::csharp::TimeSpan;
 use crate::xna::framework::{Color, Rectangle};
 use crate::xna::framework::graphics::GraphicsDevice;
 
@@ -40,8 +42,18 @@ pub struct GameWindow {
     pub window_style: GameWindowStyle,
 }
 
+#[derive(Default, PartialEq, Eq, Copy, Clone)]
+pub struct GameTime {
+    elapsed_time: TimeSpan,
+    is_slowly: bool,
+    total_time: TimeSpan,
+}
+
 #[derive(Default, PartialEq, Clone)]
 pub struct Game {
-    game_window: GameWindow,
-    graphics_device: GraphicsDevice,
+    game_window: Option<GameWindow>,
+    graphics_device: Option<GraphicsDevice>,
+    target_elapsed_time: TimeSpan,
+    game_time: GameTime,
+    is_fixed_time_step: bool,
 }
