@@ -26,11 +26,19 @@ pub struct Exception {
 }
 
 impl Exception {
+    pub fn new(message: &str, inner: Option<Exception>) -> Self {
+        Exception {
+            message: message.to_string(),
+            inner: Box::default(),
+            h_result: 0x80131500, //COR_E_EXCEPTION
+        }
+    }
+
     pub fn new_out_of_range(message: &str, inner: Option<Exception>) -> Self {
         Exception {
             message: message.to_string(),
             inner: Box::default(),
-            h_result: 0x80004003,
+            h_result: 0x80004003, //E_POINTER
         }
     }
 }

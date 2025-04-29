@@ -5,7 +5,8 @@ pub mod rasterizer_state;
 pub mod sampler_state;
 pub mod swap_chain;
 mod render_target_2d;
-mod texture_2d;
+pub mod texture_2d;
+pub mod step_time;
 
 use windows::core::BOOL;
 use windows::Win32::Foundation::{FALSE, TRUE};
@@ -14,10 +15,23 @@ use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_R8G8B8A8_U
 use windows::Win32::Graphics::Dxgi::{DXGI_SCALING, DXGI_SURFACE_DESC, DXGI_SWAP_CHAIN_DESC, DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING, DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY, DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT, DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE, DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED, DXGI_SWAP_CHAIN_FLAG_NONPREROTATED, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS, DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER, DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO, DXGI_SWAP_EFFECT, DXGI_SWAP_EFFECT_DISCARD, DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL, DXGI_SWAP_EFFECT_SEQUENTIAL, DXGI_USAGE, DXGI_USAGE_BACK_BUFFER, DXGI_USAGE_DISCARD_ON_PRESENT, DXGI_USAGE_READ_ONLY, DXGI_USAGE_RENDER_TARGET_OUTPUT, DXGI_USAGE_SHADER_INPUT, DXGI_USAGE_SHARED, DXGI_USAGE_UNORDERED_ACCESS};
 use crate::xna::framework::graphics::{Blend, BlendFunction, ColorWriteChannels, ComparisonFunction, CullMode, DisplayMode, DisplayModeScaling, FillMode, ScanlineOrder, StencilOperation, SurfaceFormat, SurfaceUsage, SwapChainFlag, SwapEffect, TextureAddressMode, TextureFilter};
 
+#[derive(Default, Eq, PartialEq, Clone, Copy)]
 struct StepTime {
-    // m_qpcFrequency: LARGER_INTEGER,
-    // m_qpcLastTime: LARGER_INTEGER,
-    // m_qpcMaxDelta: u64,
+    frequency: i64,
+    last_time: i64,
+    max_delta: u64,
+
+    elapsed_ticks: u64,
+    total_ticks: u64,
+    left_over_ticks: u64,
+
+    frame_count: u32,
+    frames_per_second: u32,
+    frames_this_second: u32,
+    second_counter: u64,
+
+    pub target_elapsed_ticks: u64,
+    pub is_fixed_time_step: bool,
 }
 
 pub fn bool_to_win_bool(bool: bool) -> BOOL {
