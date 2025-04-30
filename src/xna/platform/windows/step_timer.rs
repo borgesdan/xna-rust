@@ -52,7 +52,7 @@ impl StepTimer {
         }
     }
 
-    pub fn tick<FUpdate>(&mut self, update: &FUpdate) -> Result<(), Exception> where FUpdate: Fn(){
+    pub fn tick<FUpdate>(&mut self,update: &mut FUpdate) -> Result<(), Exception> where FUpdate: FnMut() -> Result<(), Exception>{
         let mut current_time : i64 = 0;
 
         unsafe {
@@ -93,7 +93,7 @@ impl StepTimer {
                     self.left_over_ticks = self.left_over_ticks - self.target_elapsed_ticks;
                     self.frame_count = self.frame_count + 1;
 
-                    update();
+                    update()?;
                 } else {
                     break;
                 }
@@ -104,7 +104,7 @@ impl StepTimer {
             self.left_over_ticks = 0;
             self.frame_count = self.frame_count + 1;
 
-            update();
+            update()?;
         }
 
         if self.frame_count != last_frame_count {

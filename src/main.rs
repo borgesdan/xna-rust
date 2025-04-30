@@ -17,23 +17,23 @@ use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, Presentat
 
 fn main() {
 
-    let g_device = GraphicsDevice::new();
-    let mut device = g_device.create();
-    let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" ).unwrap();
-
-    device.base.presentation_parameters = PresentationParameters {
-        back_buffer_format: SurfaceFormat::Color,
-        back_buffer_height: 600,
-        back_buffer_width: 800,
-        is_full_screen: false,
-        presentation_swap_effect: SwapEffect::FlipDiscard,
-
-        ..Default::default()
-    };
-
-    device.parameters.hwnd = window.hwnd;
-
-    device.initialize();
+    // let g_device = GraphicsDevice::new();
+    // let mut device = g_device.create();
+    // let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" ).unwrap();
+    //
+    // device.base.presentation_parameters = PresentationParameters {
+    //     back_buffer_format: SurfaceFormat::Color,
+    //     back_buffer_height: 600,
+    //     back_buffer_width: 800,
+    //     is_full_screen: false,
+    //     presentation_swap_effect: SwapEffect::FlipDiscard,
+    //
+    //     ..Default::default()
+    // };
+    //
+    // device.parameters.hwnd = window.hwnd;
+    //
+    // device.initialize();
 
     let mut msg = MSG::default();
     unsafe {

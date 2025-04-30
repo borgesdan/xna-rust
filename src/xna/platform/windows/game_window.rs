@@ -16,7 +16,7 @@ pub struct WindowsGameWindow {
 }
 
 impl GameWindow {
-    pub fn create_window(window_size: Point, window_style: GameWindowStyle, window_title: &str) -> Result<WindowsGameWindow, Exception> {
+    pub fn create(&self, ) -> Result<WindowsGameWindow, Exception> {
         unsafe {
             let class_name = Self::to_wide("XnaGameWindow");
             let h_module = GetModuleHandleW(None).unwrap();
@@ -37,19 +37,19 @@ impl GameWindow {
 
             RegisterClassExW(&wnd_class);
 
-            let style = Self::convert_window_style_to_u32(&window_style);
+            let style = Self::convert_window_style_to_u32(&self.window_style);
             let ex_style = WINDOW_EX_STYLE(style);
             let wn_style = WINDOW_STYLE(style);
 
             let window_handle = CreateWindowExW(
                 WINDOW_EX_STYLE::default(),
                 PCWSTR(class_name.as_ptr()),
-                PCWSTR(Self::to_wide(window_title).as_ptr()),
+                PCWSTR(Self::to_wide(self.window_title.as_str()).as_ptr()),
                 wn_style,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
-                window_size.x,
-                window_size.y,
+                self.window_width,
+                self.window_height,
                 None,
                 None,
                 Some(h_instance),
@@ -57,14 +57,7 @@ impl GameWindow {
             ).unwrap();
 
             let mut new_window = WindowsGameWindow {
-                base: GameWindow {
-                    window_pos_x: CW_USEDEFAULT,
-                    window_pos_y: CW_USEDEFAULT,
-                    window_width: window_size.x,
-                    window_height: window_size.y,
-                    window_style: GameWindowStyle::from(window_style),
-                    window_title: window_title.to_string(),
-                },
+                base: self.clone(),
                 hwnd: window_handle,
             };
 
