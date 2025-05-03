@@ -1,14 +1,14 @@
 pub mod game;
 pub mod game_window;
+pub mod graphics_device_manager;
 
-use std::io::IntoInnerError;
+use crate::xna::csharp::TimeSpan;
+use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters};
 use std::ops::Deref;
 use thiserror::Error;
-use windows::core::imp::HMODULE;
-use windows::Win32::UI::WindowsAndMessaging::HICON;
-use crate::xna::csharp::TimeSpan;
-use crate::xna::framework::{Color, Rectangle};
-use crate::xna::framework::graphics::GraphicsDevice;
+
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::{WindowsGame, WindowsGameWindow, WindowsGraphicsDeviceManager};
 
 pub enum DisplayOrientation {
     Default,
@@ -34,12 +34,15 @@ pub enum GameWindowStyle {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct GameWindow {
-    pub window_pos_x: i32,
-    pub window_pos_y: i32,
-    pub window_height: i32,
-    pub window_width: i32,
-    pub window_title: String,
-    pub window_style: GameWindowStyle,
+    pub x: i32,
+    pub y: i32,
+    pub height: i32,
+    pub width: i32,
+    pub title: String,
+    pub style: GameWindowStyle,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGameWindow
 }
 
 #[derive(Default, PartialEq, Eq, Copy, Clone)]
@@ -56,4 +59,22 @@ pub struct Game {
     pub target_elapsed_time: TimeSpan,
     pub current_game_time: GameTime,
     pub is_fixed_time_step: bool,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGame
+}
+
+#[derive(Default, PartialEq, Clone)]
+pub struct GraphicsDeviceManager {
+    pub presentation_parameters: PresentationParameters,
+
+    pub game: Option<Box<Game>>,
+    pub graphics_adapter: Option<Box<GraphicsAdapter>>,
+    pub graphics_device: Option<Box<GraphicsDevice>>,
+
+    pub device_dirty: bool,
+    pub in_device_transition: bool,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsDeviceManager
 }

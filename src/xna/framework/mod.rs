@@ -186,3 +186,7 @@ impl Rectangle {
         && self.width == other.width && self.height == other.height
     }
 }
+
+pub trait AsBase<TBase> {
+    fn as_base(&self) -> TBase;
+}

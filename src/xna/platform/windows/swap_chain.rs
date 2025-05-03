@@ -1,10 +1,7 @@
-use windows::core::{IUnknown, Interface};
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
-use windows::Win32::Graphics::Dxgi::{IDXGIDevice, IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
-use crate::xna::framework::graphics::SwapChain;
+use crate::xna::framework::graphics::{GraphicsDevice, SwapChain};
 use crate::xna::platform::windows::bool_to_win_bool;
-use crate::xna::platform::windows::graphics_device::WindowsGraphicsDevice;
+use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
+use windows::Win32::Graphics::Dxgi::{IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
 
 impl SwapChain {
     pub fn to_dx(&self) -> DXGI_SWAP_CHAIN_DESC {
@@ -23,15 +20,15 @@ impl SwapChain {
         }
     }
 
-    pub fn initialize(&self, w_device: &WindowsGraphicsDevice) -> Option<IDXGISwapChain> {
+    pub fn initialize(&self, device: &GraphicsDevice) -> Option<IDXGISwapChain> {
         let mut desc = self.to_dx();
 
-        desc.OutputWindow = w_device.parameters.hwnd.clone();
-        let factory = w_device.factory.as_ref().unwrap();
-        let device= w_device.device.as_ref().unwrap();
+        desc.OutputWindow = device.presentation_parameters.platform.hwnd.clone();
+        let factory = device.platform.factory.as_ref().unwrap();
+        let i_device = device.platform.device.as_ref().unwrap();
         let mut swap_chain: Option<IDXGISwapChain> = None;
         unsafe{
-            factory.CreateSwapChain(device, &desc, &mut swap_chain).unwrap();
+            factory.CreateSwapChain(i_device, &desc, &mut swap_chain).unwrap();
         }
 
         return swap_chain;

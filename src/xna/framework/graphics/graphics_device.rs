@@ -1,4 +1,4 @@
-use crate::xna::framework::graphics::{BlendState, DepthFormat, DepthStencilState, GraphicsDevice, PresentInterval, PresentationParameters, RasterizerState, RenderTarget2D, SurfaceFormat, SwapChain, SwapEffect, Viewport};
+use crate::xna::framework::graphics::{BlendState, DepthFormat, DepthStencilState, GraphicsDevice, PresentInterval, PresentationParameters, RasterizerState, RenderTarget2D, SurfaceFormat, SwapChain, SwapEffect, Texture2D, Viewport};
 
 impl GraphicsDevice {
     pub fn new() -> Self {
@@ -11,9 +11,11 @@ impl GraphicsDevice {
                 back_buffer_format: SurfaceFormat::Color,
                 presentation_interval: PresentInterval::Default,
                 depth_stencil_format: DepthFormat::None,
-                multi_sample_count: 1
+                multi_sample_count: 1,
+                    ..Default::default()
             },
             render_target: RenderTarget2D {
+                texture: Texture2D::default(),
                 ..Default::default()
             },
             swap_chain: SwapChain::new(),

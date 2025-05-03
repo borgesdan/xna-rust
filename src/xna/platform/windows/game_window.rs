@@ -1,22 +1,41 @@
-use std::mem;
-use std::fmt::Pointer;
-use windows::core::PCWSTR;
-use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, HINSTANCE, RECT, COLORREF};
-use windows::Win32::Graphics::Gdi::CreateSolidBrush;
-use windows::Win32::System::LibraryLoader::{GetModuleHandleW};
-use windows::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage, RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT, WM_QUIT, WS_OVERLAPPEDWINDOW, WINDOW_EX_STYLE, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE, WS_POPUP, WS_EX_TOPMOST, GetWindowLongA, GWL_STYLE, GWL_EXSTYLE, WINDOW_STYLE, AdjustWindowRectEx, GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN, MoveWindow, LoadIconW, IDI_APPLICATION, CS_DBLCLKS, CS_OWNDC, PostMessageA};
+use crate::xna::csharp::forms::Screen;
 use crate::xna::csharp::Exception;
-use crate::xna::framework::game::{GameWindow, GameWindowError, GameWindowStyle};
-use crate::xna::framework::{Color, Point, Rectangle, Vector2};
-
-#[derive(Default, Clone, PartialEq)]
-pub struct WindowsGameWindow {
-    pub base: GameWindow,
-    pub hwnd: HWND,
-}
+use crate::xna::framework::game::{GameWindow, GameWindowStyle};
+use std::fmt::Pointer;
+use std::mem;
+use windows::core::PCWSTR;
+use windows::Win32::Foundation::{COLORREF, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM};
+use windows::Win32::Graphics::Gdi::CreateSolidBrush;
+use windows::Win32::System::LibraryLoader::GetModuleHandleW;
+use windows::Win32::UI::WindowsAndMessaging::{AdjustWindowRectEx, CreateWindowExW, DefWindowProcW, GetSystemMetrics, GetWindowLongA, LoadCursorW, LoadIconW, MoveWindow, PostMessageA, PostQuitMessage, RegisterClassExW, CS_DBLCLKS, CS_HREDRAW, CS_OWNDC, CS_VREDRAW, GWL_EXSTYLE, GWL_STYLE, IDC_ARROW, IDI_APPLICATION, SM_CXSCREEN, SM_CYSCREEN, WINDOW_EX_STYLE, WINDOW_STYLE, WM_DESTROY, WM_PAINT, WNDCLASSEXW, WS_EX_TOPMOST, WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_VISIBLE};
 
 impl GameWindow {
-    pub fn create(&self, ) -> Result<WindowsGameWindow, Exception> {
+    pub fn close(&self) -> Result<(), Exception> {
+        unsafe {
+            let post = PostMessageA(Some(self.platform.hwnd), WM_DESTROY, WPARAM(0), LPARAM(0));
+
+            match post {
+                Ok(_) => {Ok(())}
+                Err(_) => {Err(Exception::new("PostMessageA() failed", None))}
+            }
+        }
+    }
+
+    pub fn screen_from_handle(hwnd: HWND) -> Result<Screen, Exception> {
+        //TODO
+
+        Ok(Screen::default())
+    }
+
+    pub fn scree_device_name(&self) -> Result<String, Exception> {
+        let screen = Self::screen_from_handle(self.platform.hwnd).unwrap();
+        //let name = screen.device_name();
+        //TODO: implementar screen_device_name
+        let name = String::new();
+        Ok(name)
+    }
+
+    pub fn create(&mut self) -> Result<(), Exception> {
         unsafe {
             let class_name = Self::to_wide("XnaGameWindow");
             let h_module = GetModuleHandleW(None).unwrap();
@@ -37,42 +56,36 @@ impl GameWindow {
 
             RegisterClassExW(&wnd_class);
 
-            let style = Self::convert_window_style_to_u32(&self.window_style);
+            let style = Self::convert_window_style_to_u32(&self.style);
             let ex_style = WINDOW_EX_STYLE(style);
             let wn_style = WINDOW_STYLE(style);
 
             let window_handle = CreateWindowExW(
                 WINDOW_EX_STYLE::default(),
                 PCWSTR(class_name.as_ptr()),
-                PCWSTR(Self::to_wide(self.window_title.as_str()).as_ptr()),
+                PCWSTR(Self::to_wide(self.title.as_str()).as_ptr()),
                 wn_style,
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                self.window_width,
-                self.window_height,
+                0,
+                0,
+                self.width,
+                self.height,
                 None,
                 None,
                 Some(h_instance),
                 None,
             ).unwrap();
 
-            let mut new_window = WindowsGameWindow {
-                base: self.clone(),
-                hwnd: window_handle,
-            };
-
-
-            if new_window.base.window_style == GameWindowStyle::Windowed {
-                Self::apply_windowed(&window_handle, &mut new_window);
+            if self.style == GameWindowStyle::Windowed {
+                Self::apply_windowed(&window_handle, self);
             }
 
-            Ok(new_window)
+            Ok(())
         }
     }
 
-    fn apply_windowed(hwnd: &HWND, wgame_window: &mut WindowsGameWindow) {
+    fn apply_windowed(hwnd: &HWND, game_window: &mut GameWindow) {
         unsafe {
-            let mut win_rect = RECT { left: 0, top: 0, right: wgame_window.base.window_width, bottom: wgame_window.base.window_height };
+            let mut win_rect = RECT { left: 0, top: 0, right: game_window.width, bottom: game_window.height };
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
 
@@ -84,13 +97,13 @@ impl GameWindow {
             let cx_screen = GetSystemMetrics(SM_CXSCREEN);
             let cy_screen = GetSystemMetrics(SM_CYSCREEN);
 
-            wgame_window.base.window_pos_x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
-            wgame_window.base.window_pos_y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
+            game_window.x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
+            game_window.y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
 
             MoveWindow(
                 *hwnd,
-                wgame_window.base.window_pos_x,
-                wgame_window.base.window_pos_y,
+                game_window.x,
+                game_window.y,
                 win_rect.right - win_rect.left,
                 win_rect.bottom - win_rect.top,
                 true,
@@ -122,19 +135,6 @@ impl GameWindow {
                     LRESULT(0)
                 }
                 _ => DefWindowProcW(hwnd, msg, wparam, lparam),
-            }
-        }
-    }
-}
-
-impl WindowsGameWindow {
-    pub fn close(&self) -> Result<(), Exception> {
-        unsafe {
-            let post = PostMessageA(Some(self.hwnd), WM_DESTROY, WPARAM(0), LPARAM(0));
-
-            match post {
-                Ok(_) => {Ok(())}
-                Err(_) => {Err(Exception::new("PostMessageA() failed", None))}
             }
         }
     }

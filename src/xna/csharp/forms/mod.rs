@@ -2,6 +2,8 @@ pub mod screen;
 
 use thiserror::Error;
 use crate::xna::csharp::Rectangle;
+
+#[derive(Default)]
 pub struct Screen {
     pub h_monitor: isize,
     pub primary: bool,
