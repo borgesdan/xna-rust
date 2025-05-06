@@ -75,6 +75,25 @@ pub struct GraphicsDeviceManager {
     pub device_dirty: bool,
     pub in_device_transition: bool,
 
+    pub graphics_profile: GraphicsProfile,
+
+    pub is_full_screen: bool,
+    pub synchronize_with_vertical_retrace: bool,
+
     #[cfg(target_os = "windows")]
     pub platform: WindowsGraphicsDeviceManager
+}
+
+#[derive(Default, PartialEq, Clone, Copy, Eq)]
+pub enum GraphicsProfile{
+    #[default]
+    Reach,
+    HiDef
+}
+
+#[derive(Default, PartialEq, Clone, Eq)]
+pub struct GraphicsDeviceInformation {
+    pub adapter: GraphicsAdapter,
+    pub profile: GraphicsProfile,
+    pub presentation_parameters: PresentationParameters,
 }

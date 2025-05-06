@@ -9,7 +9,7 @@ pub struct Point {
     pub y: i32,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Rectangle {
     pub x: i32,
     pub y: i32,

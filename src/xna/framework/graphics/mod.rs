@@ -6,9 +6,13 @@ pub mod rasterizer_state;
 pub mod sampler_state;
 pub mod swap_chain;
 pub mod graphics_device;
+pub mod display_mode_collection;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
-
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsGraphicsAdapter;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsGraphicsAdapterOutput;
 #[cfg(target_os = "windows")]
 use crate::xna::platform::windows::WindowsGraphicsDevice;
 #[cfg(target_os = "windows")]
@@ -35,16 +39,31 @@ pub struct Bgr565 {
 }
 
 #[derive(Default, Eq, PartialEq, Clone)]
+pub struct GraphicsAdapterOutput {
+    pub device_name: String,
+    pub desktop_coordinates: Rectangle,
+    pub attached_to_desktop: bool,
+    pub display_mode_collection: DisplayModeCollection,
+    pub current_display_mode: Option<DisplayMode>,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsAdapterOutput
+}
+
+#[derive(Default, Eq, PartialEq, Clone)]
 pub struct GraphicsAdapter {
     pub index: u32,
     pub description: String,
     pub device_id: u32,
-    pub device_name: String,
     pub is_default: bool,
-    pub monitor_handle: isize,
     pub revision: u32,
     pub sub_system_id: u32,
     pub vendor_id: u32,
+    pub outputs: Vec<GraphicsAdapterOutput>,
+    pub current_output: Option<GraphicsAdapterOutput>,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsAdapter
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -331,6 +350,11 @@ pub struct DisplayMode {
     pub format: SurfaceFormat,
     pub scanline_order: ScanlineOrder,
     pub scaling: DisplayModeScaling
+}
+
+#[derive(Default, Eq, PartialEq, Clone)]
+pub struct DisplayModeCollection {
+    pub display_modes: Vec<DisplayMode>,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]

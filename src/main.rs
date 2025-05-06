@@ -13,9 +13,11 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use crate::xna::framework::{Color, Point};
 use crate::xna::csharp::forms::Screen;
 use crate::xna::framework::game::{GameWindow, GameWindowStyle};
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat, SwapEffect};
+use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsAdapterOutput, GraphicsDevice, PresentationParameters, SurfaceFormat, SwapEffect};
 
 fn main() {
+
+    let adapter = GraphicsAdapter::default_adapter();
 
     // let g_device = GraphicsDevice::new();
     // let mut device = g_device.create();
@@ -35,17 +37,19 @@ fn main() {
     //
     // device.initialize();
 
-    let mut msg = MSG::default();
-    unsafe {
-        while GetMessageW(&mut msg, None, 0, 0).into() {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
 
-            if msg.message == WM_QUIT {
-                break;
-            }
-        }
-    }
+
+    // let mut msg = MSG::default();
+    // unsafe {
+    //     while GetMessageW(&mut msg, None, 0, 0).into() {
+    //         TranslateMessage(&msg);
+    //         DispatchMessageW(&msg);
+    //
+    //         if msg.message == WM_QUIT {
+    //             break;
+    //         }
+    //     }
+    // }
 return;
 
 

@@ -21,23 +21,23 @@ pub struct TimeSpan {
 #[error("{h_result}: {message}")]
 pub struct Exception {
     pub message: String,
-    pub inner: Box<Exception>,
+    pub inner: Option<Box<Exception>>,
     pub h_result: isize,
 }
 
 impl Exception {
-    pub fn new(message: &str, inner: Option<Exception>) -> Self {
+    pub fn new(message: &str, inner: Option<Box<Exception>>) -> Self {
         Exception {
             message: message.to_string(),
-            inner: Box::default(),
+            inner: inner,
             h_result: 0x80131500, //COR_E_EXCEPTION
         }
     }
 
-    pub fn new_out_of_range(message: &str, inner: Option<Exception>) -> Self {
+    pub fn new_out_of_range(message: &str, inner: Option<Box<Exception>>) -> Self {
         Exception {
             message: message.to_string(),
-            inner: Box::default(),
+            inner: inner,
             h_result: 0x80004003, //E_POINTER
         }
     }
