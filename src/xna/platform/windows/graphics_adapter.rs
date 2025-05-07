@@ -1,8 +1,8 @@
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIOutput, DXGI_ENUM_MODES, DXGI_ENUM_MODES_INTERLACED, DXGI_ENUM_MODES_SCALING, DXGI_ENUM_MODES_STEREO};
-use windows::Win32::Graphics::Dxgi::Common::DXGI_MODE_DESC;
+use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC};
 use crate::xna::csharp::Exception;
-use crate::xna::framework::game::GraphicsDeviceManager;
-use crate::xna::framework::graphics::{DisplayMode, DisplayModeCollection, DisplayModeScaling, GraphicsAdapter, GraphicsAdapterOutput, ScanlineOrder, SurfaceFormat};
+use crate::xna::framework::game::{GraphicsDeviceManager, GraphicsProfile};
+use crate::xna::framework::graphics::{DepthFormat, DisplayMode, DisplayModeCollection, DisplayModeScaling, GraphicsAdapter, GraphicsAdapterOutput, ScanlineOrder, SurfaceFormat};
 use crate::xna::framework::Rectangle;
 use crate::xna::platform::windows::WindowsGraphicsAdapterOutput;
 
@@ -96,6 +96,7 @@ impl GraphicsAdapter {
                         output: Some(output)
                     },
                     display_mode_collection: supported_display_modes,
+
                     current_display_mode: current_display_mode,
                 };
 
@@ -219,4 +220,39 @@ impl GraphicsAdapter {
             Ok(adp)
         }
     }
+
+    pub fn query_back_buffer_format(&self, format: &SurfaceFormat, depth_format: &DepthFormat, multi_sample_count: i32)
+    -> Result<(SurfaceFormat, DepthFormat, u32), Exception> {
+        if format.to_dx() == DXGI_FORMAT_UNKNOWN {
+            return Err(Exception::new("Unsupported backbuffer format.", None));
+        }
+
+        let mut selected_format = *format;
+        let selected_depth_format = *depth_format;
+        let selected_multi_sample_count = *multi_sample_count;
+
+        let mode_to_match = DXGI_MODE_DESC {
+            Format: format.to_dx(),
+            ..Default::default()
+        };
+
+        let mut closest_match = DXGI_MODE_DESC::default();
+        let output = self.current_output
+            .as_ref().unwrap()
+            .platform.output
+            .as_ref().unwrap();
+
+        unsafe {
+            let result = output.FindClosestMatchingMode(&mode_to_match, &mut closest_match, None);
+
+            if result.is_err() {
+                return Err(Exception::new("FindClosestMatching failed.", None));
+            }
+        }
+
+        selected_format = SurfaceFormat::from(closest_match.Format);
+
+        Ok((selected_format, selected_depth_format, selected_multi_sample_count))
+    }
 }
+

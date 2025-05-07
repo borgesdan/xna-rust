@@ -9,6 +9,7 @@ pub mod graphics_device;
 pub mod display_mode_collection;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
+use crate::xna::framework::game::GraphicsProfile;
 #[cfg(target_os = "windows")]
 use crate::xna::platform::windows::WindowsGraphicsAdapter;
 #[cfg(target_os = "windows")]
@@ -410,6 +411,7 @@ pub struct GraphicsDevice {
     pub viewport: Viewport,
     pub render_target: RenderTarget2D,
     pub swap_chain: SwapChain,
+    pub graphics_profile: GraphicsProfile,
 
     #[cfg(target_os = "windows")]
     pub platform: WindowsGraphicsDevice

@@ -41,6 +41,14 @@ impl Exception {
             h_result: 0x80004003, //E_POINTER
         }
     }
+
+    pub fn invalid_operation(message: &str, inner: Option<Box<Exception>>) -> Self{
+        Exception {
+            message: message.to_string(),
+            inner: inner,
+            h_result: 0x80004003, //E_POINTER
+        }
+    }
 }
 
 impl Rectangle {

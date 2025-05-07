@@ -260,6 +260,13 @@ impl SurfaceFormat {
             SurfaceFormat::Color => DXGI_FORMAT_R8G8B8A8_UNORM,
         }
     }
+
+    pub fn from(value: DXGI_FORMAT) -> Self {
+        match value {
+           DXGI_FORMAT_R8G8B8A8_UNORM => SurfaceFormat::Color,
+            _ => SurfaceFormat::Color,
+        }
+    }
 }
 
 impl DisplayModeScaling {
