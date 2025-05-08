@@ -1,3 +1,4 @@
+use windows::core::BOOL;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use crate::xna::csharp::Exception;
@@ -15,7 +16,39 @@ impl GraphicsDeviceManager{
         self.change_device(false)
     }
 
-    pub fn change_device(&mut self, force_create: bool) -> Result<(), Exception> {
+    pub fn toggle_full_screen(&mut self) -> Result<(), Exception> {
+        let mut swapchainn = self.graphics_device
+            .as_mut().unwrap().platform.swap_chain
+            .as_mut().unwrap();
+
+        let mut state = BOOL(0);
+        unsafe {
+            let mut result = swapchainn.GetFullscreenState(Some(&mut state), None);
+
+            if result.is_err() {
+                let error = Exception::convert_windows_error(result);
+                return Err(Exception::new("Toggle full screen failt", error));
+            }
+
+            result = swapchainn.SetFullscreenState(!state.as_bool(), None);
+
+            if result.is_err() {
+                let error = Exception::convert_windows_error(result);
+                return Err(Exception::new("Toggle full screen failt", error));
+            }
+        }
+
+        self.is_full_screen = !state.as_bool();
+
+        Ok(())
+    }
+
+    pub fn prefer_multi_sampling(&mut self,value: bool) {
+        self.allow_multi_sampling = value;
+        self.is_device_dirty = true;
+    }
+
+    fn change_device(&mut self, force_create: bool) -> Result<(), Exception> {
         if self.game.is_none() {
             return Err(Exception::new("Game is not defined.", None));
         }
@@ -45,14 +78,8 @@ impl GraphicsDeviceManager{
         self.is_device_dirty = false;
         self.in_device_transition = false;
 
-        //TODO
         Ok(())
 
-    }
-
-    pub fn prefer_multi_sampling(&mut self,value: bool) {
-        self.allow_multi_sampling = value;
-        self.is_device_dirty = true;
     }
 
     fn find_best_platform_device(&mut self) -> Result<GraphicsDeviceInformation, Exception>{

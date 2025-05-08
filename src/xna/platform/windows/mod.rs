@@ -113,6 +113,18 @@ pub fn bool_to_win_bool(bool: bool) -> BOOL {
     if bool { TRUE } else { FALSE }
 }
 
+impl Exception {
+    pub fn convert_windows_error(result: windows::core::Result<()>) -> Option<Self> {
+        if result.is_ok(){
+            return None;
+        }
+
+        let error = result.err().unwrap();
+        let ex = Exception::create(error.message().as_str(), error.code().0 as isize, None);
+        Some(ex)
+    }
+}
+
 impl Blend {
     pub fn to_dx(&self) -> D3D11_BLEND {
         match self {
