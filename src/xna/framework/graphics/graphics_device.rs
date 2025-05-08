@@ -1,4 +1,5 @@
-use crate::xna::framework::graphics::{BlendState, DepthFormat, DepthStencilState, GraphicsDevice, PresentInterval, PresentationParameters, RasterizerState, RenderTarget2D, SurfaceFormat, SwapChain, SwapEffect, Texture2D, Viewport};
+use crate::xna::framework::game::GraphicsProfile;
+use crate::xna::framework::graphics::{BlendState, DepthFormat, DepthStencilState, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters, RasterizerState, RenderTarget2D, SurfaceFormat, SwapChain, SwapEffect, Texture2D, Viewport};
 
 impl GraphicsDevice {
     pub fn new() -> Self {
@@ -19,9 +20,9 @@ impl GraphicsDevice {
                 ..Default::default()
             },
             swap_chain: SwapChain::new(),
-            blend_state: BlendState::new(),
-            rasterizer_state: RasterizerState::new(),
-            depth_stencil_state: DepthStencilState::new(),
+            blend_state: BlendState::opaque(),
+            rasterizer_state: RasterizerState::cull_clock_wise(),
+            depth_stencil_state: DepthStencilState::default(),
             viewport: Viewport {
                 x: 0.0,
                 y: 0.0,
@@ -32,6 +33,15 @@ impl GraphicsDevice {
             },
             ..Default::default()
         }
+    }
+
+    pub fn new_from_profile(adapter: &GraphicsAdapter, profile: &GraphicsProfile, presentation_parameters: &PresentationParameters) -> Self {
+        let mut device = Self::new();
+        device.adapter = adapter.clone();
+        device.graphics_profile = profile.clone();
+        device.presentation_parameters = presentation_parameters.clone();
+
+        device
     }
 }
 

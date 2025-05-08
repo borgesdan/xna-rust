@@ -3,12 +3,12 @@ use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use crate::xna::csharp::Exception;
 use crate::xna::framework::AsBase;
 use crate::xna::framework::game::{GraphicsDeviceInformation, GraphicsDeviceManager};
-use crate::xna::framework::graphics::{DepthFormat, DisplayMode, GraphicsAdapter, PresentInterval, PresentationParameters, SurfaceFormat};
+use crate::xna::framework::graphics::{DepthFormat, DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters, SurfaceFormat};
 use crate::xna::platform::windows::{WindowsGraphicsDeviceManager, WindowsPresentationParameters};
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
-        if self.graphics_device.is_some() && !self.device_dirty {
+        if self.graphics_device.is_some() && !self.is_device_dirty {
             return Ok(())
         }
 
@@ -21,23 +21,29 @@ impl GraphicsDeviceManager{
         }
 
         self.in_device_transition = true;
-        let game = self.game.as_ref().unwrap();
-        let game_window = game.game_window.as_ref().unwrap();
-        let screen_device_name = game_window.scree_device_name().unwrap();
-        let client_bounds = game_window.client_bounds();
-        let client_width = client_bounds.width;
-        let client_height = client_bounds.height;
 
-        let best_device = self.find_best_device(force_create);
+        let mut best_device = self.find_best_platform_device()?;
+        let mut flag = true;
 
         if !force_create && self.graphics_device.is_some() {
             let can_reset = self.can_reset_device(&best_device);
 
             if can_reset {
-                let device_information = &best_device;
-                self.message_present_parameters(&best_device.parameters);
+                let mut pp = best_device.presentation_parameters.clone();
+                self.message_present_parameters(&mut pp)?;
+                best_device.presentation_parameters = pp;
+                Self::validate_graphics_device_information(&best_device)?;
+                self.graphics_device.as_mut().unwrap().reset(&best_device.presentation_parameters, &best_device.adapter)?;
+                flag = false;
             }
         }
+
+        if flag {
+            self.create_device(&best_device)?;
+        }
+
+        self.is_device_dirty = false;
+        self.in_device_transition = false;
 
         //TODO
         Ok(())
@@ -64,7 +70,7 @@ impl GraphicsDeviceManager{
             return Err(Exception::new("No devices found.", None));
         }
 
-        self.rank_devices(&mut found_devices);
+        Self::rank_devices_platform(&mut found_devices);
 
         if found_devices.len() == 0 {
             return Err(Exception::new("No devices found.", None));
@@ -77,6 +83,28 @@ impl GraphicsDeviceManager{
 
     fn rank_devices_platform(found_devices: &mut Vec<GraphicsDeviceInformation>) {
         found_devices.sort()
+    }
+
+    fn create_device(&mut self, graphics_device_information: &GraphicsDeviceInformation) -> Result<(), Exception> {
+        self.graphics_device = None;
+        let mut new_info = graphics_device_information.clone();
+
+        self.message_present_parameters(&mut new_info.presentation_parameters)?;
+        Self::validate_graphics_device_information(&mut new_info)?;
+
+        let width = new_info.presentation_parameters.back_buffer_width;
+        let height = new_info.presentation_parameters.back_buffer_height;
+
+        self.game.as_mut().unwrap().resize_window(width as i32, height as i32)?;
+
+        let device = Box::new(GraphicsDevice::new_from_profile(&new_info.adapter, &new_info.profile, &new_info.presentation_parameters));
+
+        self.graphics_device = Some(device.clone());
+        self.graphics_device.as_mut().unwrap().initialize()?;
+
+        self.game.as_mut().unwrap().attach_graphics_device(device);
+
+        Ok(())
     }
 
     fn add_devices(&self, found_devices: &mut Vec<GraphicsDeviceInformation>)
@@ -162,7 +190,7 @@ impl GraphicsDeviceManager{
 
     fn message_present_parameters(&self, parameters: &mut PresentationParameters) -> Result<(), Exception> {
         if parameters.is_full_screen {
-            return;
+            return Ok(());
         }
 
         let flag1 = parameters.back_buffer_width == 0;
@@ -186,7 +214,7 @@ impl GraphicsDeviceManager{
             if result.is_err() {
                 let inner = Exception::new(result.err().unwrap().message().as_str(), None);
 
-                return Err(Exception::invalid_operation("Graphics component not attached to game", Some(Box::new(inner))));
+                return Err(Exception::invalid_operation("Graphics component not attached to game", Some(inner)));
             }
         }
 
@@ -200,5 +228,43 @@ impl GraphicsDeviceManager{
         parameters.back_buffer_height = 1;
 
         Ok(())
+    }
+
+    fn validate_graphics_device_information(device_info: &GraphicsDeviceInformation) -> Result<(), Exception> {
+        let presentation_parameters = &device_info.presentation_parameters;
+
+        if presentation_parameters.is_full_screen {
+            return Ok(())
+        }
+
+        if presentation_parameters.back_buffer_height == 0 || presentation_parameters.back_buffer_width == 0 {
+            return Err(Exception::argument_exception("Validate backbuffer full screen fail", None));
+        }
+
+        let mut flag = true;
+        let adapter = &device_info.adapter;
+        let current_output = adapter.current_output.as_ref().unwrap();
+        let current_display_mode = adapter.current_output.as_ref().unwrap().current_display_mode.as_ref().unwrap();
+
+        if current_display_mode.format != presentation_parameters.back_buffer_format
+            && current_display_mode.width != presentation_parameters.back_buffer_width
+            && current_display_mode.height != presentation_parameters.back_buffer_height {
+
+            flag = false;
+
+            for display_mode in &current_output.display_mode_collection.display_modes {
+                if display_mode.format == presentation_parameters.back_buffer_format && display_mode.width == presentation_parameters.back_buffer_width && display_mode.height == presentation_parameters.back_buffer_height {
+                    flag = true;
+                    break;
+                }
+            }
+        }
+
+        if !flag{
+            return Err(Exception::argument_exception("Validate backbuffer full screen fail", None));
+        }
+
+        Ok(())
+
     }
 }

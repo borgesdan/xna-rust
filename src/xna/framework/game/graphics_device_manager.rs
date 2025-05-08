@@ -1,5 +1,5 @@
 use crate::xna::csharp::Exception;
-use crate::xna::framework::game::{Game, GraphicsDeviceManager};
+use crate::xna::framework::game::{Game, GraphicsDeviceManager, GraphicsProfile};
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
 
 impl GraphicsDeviceManager {
@@ -8,7 +8,7 @@ impl GraphicsDeviceManager {
 }
 
 impl GraphicsDeviceManager {
-    pub fn new(game: &Box<Game>) -> Self {
+    pub fn new(game: Option<Box<Game>>) -> Self {
         let adapter = GraphicsAdapter::default();
 
         let parameters = PresentationParameters {
@@ -20,11 +20,12 @@ impl GraphicsDeviceManager {
         };
 
         GraphicsDeviceManager {
-            game: Some(game.clone()),
+            game: game.clone(),
             graphics_adapter: Some(Box::new(adapter)),
             presentation_parameters: parameters,
             ..Default::default()
         }
+
     }
 }
 

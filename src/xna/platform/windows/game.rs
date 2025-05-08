@@ -1,6 +1,7 @@
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::game::{Game, GameTime};
 use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
+use crate::xna::framework::graphics::GraphicsDevice;
 
 impl Game {
     pub fn exit(&self) -> Result<(), Exception> {
@@ -128,5 +129,23 @@ impl Game {
         }
 
         Ok(())
+    }
+
+    pub fn resize_window(&mut self, width: i32, height: i32) -> Result<(), Exception> {
+        let mut game_window = self.game_window.as_mut().unwrap();
+        let windows_bounds = game_window.client_bounds();
+
+        if windows_bounds.width != width || windows_bounds.height != height {
+            game_window.width = width;
+            game_window.height = height;
+
+            game_window.update()?
+        }
+
+        Ok(())
+    }
+
+    pub fn attach_graphics_device(&mut self, device: Box<GraphicsDevice>) {
+        self.graphics_device = Some(device);
     }
 }

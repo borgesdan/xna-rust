@@ -22,8 +22,7 @@ impl GraphicsAdapter {
                     if count > 0 {
                         break;
                     } else {
-                        let inner = Box::new(result.err().unwrap());
-                        return Err(Exception::new("Cannot find graphics adapters", Some(inner)));
+                        return Err(Exception::new("Cannot find graphics adapters", result.err()));
                     }
                 }
 
@@ -41,8 +40,7 @@ impl GraphicsAdapter {
             let result = Self::create(&factory, 0);
 
             if result.is_err() {
-                let inner = Box::new(result.err().unwrap());
-                return Err(Exception::new("Cannot find graphics adapters", Some(inner)));
+                return Err(Exception::new("Cannot find graphics adapters", result.err()));
             }
 
             Ok(result?)
@@ -221,7 +219,7 @@ impl GraphicsAdapter {
         }
     }
 
-    pub fn query_back_buffer_format(&self, format: &SurfaceFormat, depth_format: &DepthFormat, multi_sample_count: i32)
+    pub fn query_back_buffer_format(&self, format: &SurfaceFormat, depth_format: &DepthFormat, multi_sample_count: u32)
     -> Result<(SurfaceFormat, DepthFormat, u32), Exception> {
         if format.to_dx() == DXGI_FORMAT_UNKNOWN {
             return Err(Exception::new("Unsupported backbuffer format.", None));
@@ -229,7 +227,7 @@ impl GraphicsAdapter {
 
         let mut selected_format = *format;
         let selected_depth_format = *depth_format;
-        let selected_multi_sample_count = *multi_sample_count;
+        let selected_multi_sample_count = multi_sample_count;
 
         let mode_to_match = DXGI_MODE_DESC {
             Format: format.to_dx(),

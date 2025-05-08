@@ -56,7 +56,7 @@ pub struct GameTime {
 #[derive(Default, PartialEq, Clone)]
 pub struct Game {
     pub game_window: Option<GameWindow>,
-    pub graphics_device: Option<GraphicsDevice>,
+    pub graphics_device: Option<Box<GraphicsDevice>>,
     pub target_elapsed_time: TimeSpan,
     pub current_game_time: GameTime,
     pub is_fixed_time_step: bool,

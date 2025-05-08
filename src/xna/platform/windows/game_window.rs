@@ -76,16 +76,25 @@ impl GameWindow {
             ).unwrap();
 
             if self.style == GameWindowStyle::Windowed {
-                Self::apply_windowed(&window_handle, self);
+                self.apply_windowed();
             }
 
             Ok(())
         }
     }
 
-    fn apply_windowed(hwnd: &HWND, game_window: &mut GameWindow) {
+    pub fn update(&mut self) -> Result<(), Exception> {
+        if self.style == GameWindowStyle::Windowed {
+            self.apply_windowed()?;
+        }
+
+        Ok(())
+    }
+
+    fn apply_windowed(&mut self) -> Result<(), Exception> {
         unsafe {
-            let mut win_rect = RECT { left: 0, top: 0, right: game_window.width, bottom: game_window.height };
+            let mut win_rect = RECT { left: 0, top: 0, right: self.width, bottom: self.height };
+            let hwnd = &self.platform.hwnd;
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
 
@@ -97,17 +106,19 @@ impl GameWindow {
             let cx_screen = GetSystemMetrics(SM_CXSCREEN);
             let cy_screen = GetSystemMetrics(SM_CYSCREEN);
 
-            game_window.x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
-            game_window.y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
+            self.x = (cx_screen / 2) - ((win_rect.right - win_rect.left) / 2);
+            self.y = (cy_screen / 2) - ((win_rect.bottom - win_rect.top) / 2);
 
             MoveWindow(
                 *hwnd,
-                game_window.x,
-                game_window.y,
+                self.x,
+                self.y,
                 win_rect.right - win_rect.left,
                 win_rect.bottom - win_rect.top,
                 true,
             ).unwrap();
+
+            Ok(())
         }
     }
 
