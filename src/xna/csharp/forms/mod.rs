@@ -1,19 +1,20 @@
 pub mod screen;
 
-use thiserror::Error;
 use crate::xna::csharp::Rectangle;
 
-#[derive(Default)]
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsScreen;
+
+#[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Screen {
-    pub h_monitor: isize,
     pub primary: bool,
     pub device_name: String,
     pub bounds: Rectangle,
-    pub working_area: Rectangle
+    pub working_area: Rectangle,
+    pub bit_depth: i32,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsScreen
 }
 
-#[derive(Error, Debug, Default)]
-#[error("{message}")]
-pub struct ScreenError{
-    pub message: String,
-}
+pub struct SystemInformation;

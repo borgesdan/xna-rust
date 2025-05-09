@@ -5,7 +5,7 @@ use std::fmt::Pointer;
 use std::mem;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{COLORREF, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM};
-use windows::Win32::Graphics::Gdi::CreateSolidBrush;
+use windows::Win32::Graphics::Gdi::{CreateSolidBrush, MonitorFromWindow, HDC, MONITOR_DEFAULTTOPRIMARY};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::WindowsAndMessaging::{AdjustWindowRectEx, CreateWindowExW, DefWindowProcW, GetSystemMetrics, GetWindowLongA, LoadCursorW, LoadIconW, MoveWindow, PostMessageA, PostQuitMessage, RegisterClassExW, CS_DBLCLKS, CS_HREDRAW, CS_OWNDC, CS_VREDRAW, GWL_EXSTYLE, GWL_STYLE, IDC_ARROW, IDI_APPLICATION, SM_CXSCREEN, SM_CYSCREEN, WINDOW_EX_STYLE, WINDOW_STYLE, WM_DESTROY, WM_PAINT, WNDCLASSEXW, WS_EX_TOPMOST, WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_VISIBLE};
 
@@ -21,18 +21,29 @@ impl GameWindow {
         }
     }
 
-    pub fn screen_from_handle(hwnd: HWND) -> Result<Screen, Exception> {
-        //TODO
+    pub fn screen_from_handle(hwnd: &HWND) -> Option<Screen> {
+        unsafe {
+            let h_monitor = MonitorFromWindow(*hwnd, MONITOR_DEFAULTTOPRIMARY);
 
-        Ok(Screen::default())
+            if h_monitor.is_invalid() {
+                return None;
+            }
+
+            let screen = Screen::from_monitor(h_monitor, HDC::default());
+
+            Some(screen)
+        }
     }
 
     pub fn scree_device_name(&self) -> Result<String, Exception> {
-        let screen = Self::screen_from_handle(self.platform.hwnd).unwrap();
-        //let name = screen.device_name();
-        //TODO: implementar screen_device_name
-        let name = String::new();
-        Ok(name)
+        unsafe {
+            let screen = Self::screen_from_handle(&self.platform.hwnd).unwrap();
+            //let name = screen.device_name();
+            //TODO: implementar screen_device_name
+            let name = String::new();
+            Ok(name)
+        }
+
     }
 
     pub fn create(&mut self) -> Result<(), Exception> {

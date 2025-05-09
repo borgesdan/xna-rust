@@ -4,7 +4,7 @@ pub mod time_span;
 use std::str;
 use thiserror::Error;
 
-#[derive(Default, Eq, PartialEq, Clone, Copy)]
+#[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Rectangle {
     pub x : i32,
     pub y : i32,
