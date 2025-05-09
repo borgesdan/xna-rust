@@ -14,7 +14,7 @@ pub struct Rectangle {
 
 #[derive(Default, Eq, PartialEq, Clone, Copy)]
 pub struct TimeSpan {
-    ticks: i64,
+    pub ticks: i64,
 }
 
 #[derive(Error, Debug, Default, Eq, PartialEq, Clone)]

@@ -83,14 +83,6 @@ pub struct WindowsGraphicsDevice {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct WindowsGame {
-    pub begin_run_fn: Option<fn() ->Result<(), Exception>>,
-    pub update_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub draw_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub begin_fn: Option<fn() ->Result<(), Exception>>,
-    pub end_fn: Option<fn() ->Result<(), Exception>>,
-    pub initialize_fn: Option<fn() ->Result<(), Exception>>,
-    pub load_content_fn: Option<fn() ->Result<(), Exception>>,
-
     pub is_running: bool,
     pub step_timer: StepTimer,
 }

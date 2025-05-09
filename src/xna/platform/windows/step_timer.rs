@@ -31,11 +31,23 @@ impl StepTimer {
         self.frames_per_second
     }
 
+    pub fn get_frame_per_second(&self) -> u32 {
+        return self.frames_per_second;
+    }
+
+    pub fn set_fixed_time_step(&mut self, is_fixed_time_step: bool) {
+        self.is_fixed_time_step = is_fixed_time_step;
+    }
+
+    pub fn set_target_elapsed_ticks(&mut self, target_elapsed: u64) {
+        self.target_elapsed_ticks = target_elapsed;
+    }
+
     pub fn set_target_elapsed_seconds(&mut self, target_elapsed: f64) {
         self.target_elapsed_ticks = Self::seconds_to_ticks(target_elapsed);
     }
 
-    fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
+    pub fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
         unsafe {
             let query = QueryPerformanceCounter(&mut self.last_time);
 

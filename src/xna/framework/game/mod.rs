@@ -3,7 +3,7 @@ pub mod game_window;
 pub mod graphics_device_manager;
 
 use std::cmp::Ordering;
-use crate::xna::csharp::TimeSpan;
+use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
 use std::ops::Deref;
 use thiserror::Error;
@@ -55,11 +55,20 @@ pub struct GameTime {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct Game {
-    pub game_window: Option<GameWindow>,
+    pub game_window: Option<Box<GameWindow>>,
     pub graphics_device: Option<Box<GraphicsDevice>>,
     pub target_elapsed_time: TimeSpan,
     pub current_game_time: GameTime,
     pub is_fixed_time_step: bool,
+
+    pub begin_run_fn: Option<fn() ->Result<(), Exception>>,
+    pub update_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
+    pub draw_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
+    pub begin_fn: Option<fn() ->Result<(), Exception>>,
+    pub end_fn: Option<fn() ->Result<(), Exception>>,
+    pub end_run_fn: Option<fn() ->Result<(), Exception>>,
+    pub initialize_fn: Option<fn() ->Result<(), Exception>>,
+    pub load_content_fn: Option<fn() ->Result<(), Exception>>,
 
     #[cfg(target_os = "windows")]
     pub platform: WindowsGame
@@ -67,27 +76,19 @@ pub struct Game {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct GraphicsDeviceManager {
-    pub presentation_parameters: PresentationParameters,
-
-    pub game: Option<Box<Game>>,
+    pub presentation_parameters: PresentationParameters,    pub game: Option<Box<Game>>,
     pub graphics_adapter: Option<Box<GraphicsAdapter>>,
     pub graphics_device: Option<Box<GraphicsDevice>>,
-
     pub is_device_dirty: bool,
     pub in_device_transition: bool,
-
     pub graphics_profile: GraphicsProfile,
-
     pub is_full_screen: bool,
     pub synchronize_with_vertical_retrace: bool,
     pub use_resized_back_buffer: bool,
-
     pub resized_back_buffer_width: u32,
     pub resized_back_buffer_height: u32,
-
     pub depth_stencil_format: DepthFormat,
     pub allow_multi_sampling: bool,
-
     pub back_buffer_format: SurfaceFormat,
 
     #[cfg(target_os = "windows")]
