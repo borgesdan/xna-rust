@@ -2,7 +2,7 @@ use crate::xna::csharp::forms::{Screen, SystemInformation};
 use crate::xna::csharp::Rectangle;
 use std::{mem, ptr};
 use windows::core::PCWSTR;
-use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, GetDeviceCaps, GetMonitorInfoA, BITSPIXEL, HDC, HMONITOR, MONITORINFOEXA, PLANES};
+use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, GetDeviceCaps, GetMonitorInfoA, BITSPIXEL, HDC, HMONITOR, MONITORINFO, MONITORINFOEXA, PLANES};
 use windows::Win32::UI::WindowsAndMessaging::MONITORINFOF_PRIMARY;
 
 impl Screen {
@@ -73,8 +73,12 @@ impl Screen {
         let mut monitor_info: MONITORINFOEXA = unsafe { mem::zeroed() };
         monitor_info.monitorInfo.cbSize = size_of::<MONITORINFOEXA>() as u32;
 
+        let mut p_info_exa: *mut MONITORINFOEXA = &mut monitor_info;
+        let p_info = p_info_exa as *mut MONITORINFO;
+
         unsafe {
-            GetMonitorInfoA(*monitor, &mut monitor_info as *mut _ as *mut _);
+            //GetMonitorInfoA(*monitor, &mut monitor_info as *mut _ as *mut _);
+            let _ =GetMonitorInfoA(*monitor, p_info);
             monitor_info
         }
     }
