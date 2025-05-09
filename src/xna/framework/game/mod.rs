@@ -37,8 +37,8 @@ pub enum GameWindowStyle {
 pub struct GameWindow {
     pub x: i32,
     pub y: i32,
-    pub height: i32,
-    pub width: i32,
+    pub height: u32,
+    pub width: u32,
     pub title: String,
     pub style: GameWindowStyle,
 

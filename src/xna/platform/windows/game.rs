@@ -131,11 +131,11 @@ impl Game {
         Ok(())
     }
 
-    pub fn resize_window(&mut self, width: i32, height: i32) -> Result<(), Exception> {
+    pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), Exception> {
         let mut game_window = self.game_window.as_mut().unwrap();
         let windows_bounds = game_window.client_bounds();
 
-        if windows_bounds.width != width || windows_bounds.height != height {
+        if windows_bounds.width != width as i32 || windows_bounds.height != height as i32 {
             game_window.width = width;
             game_window.height = height;
 

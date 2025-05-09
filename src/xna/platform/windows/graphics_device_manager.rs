@@ -113,7 +113,7 @@ impl GraphicsDeviceManager{
         let width = new_info.presentation_parameters.back_buffer_width;
         let height = new_info.presentation_parameters.back_buffer_height;
 
-        self.game.as_mut().unwrap().resize_window(width as i32, height as i32)?;
+        self.game.as_mut().unwrap().resize_window(width, height)?;
 
         let device = Box::new(GraphicsDevice::new_from_profile(&new_info.adapter, &new_info.profile, &new_info.presentation_parameters));
 

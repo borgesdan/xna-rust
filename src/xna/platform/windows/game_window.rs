@@ -78,8 +78,8 @@ impl GameWindow {
                 wn_style,
                 0,
                 0,
-                self.width,
-                self.height,
+                self.width as i32,
+                self.height as i32,
                 None,
                 None,
                 Some(h_instance),
@@ -104,7 +104,7 @@ impl GameWindow {
 
     fn apply_windowed(&mut self) -> Result<(), Exception> {
         unsafe {
-            let mut win_rect = RECT { left: 0, top: 0, right: self.width, bottom: self.height };
+            let mut win_rect = RECT { left: 0, top: 0, right: self.width as i32, bottom: self.height as i32 };
             let hwnd = &self.platform.hwnd;
             let win_style = GetWindowLongA(*hwnd, GWL_STYLE);
             let win_ex_style = GetWindowLongA(*hwnd, GWL_EXSTYLE);
