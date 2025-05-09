@@ -80,7 +80,7 @@ pub struct GraphicsDeviceManager {
 
     pub is_full_screen: bool,
     pub synchronize_with_vertical_retrace: bool,
-    pub use_resized_backbuffer: bool,
+    pub use_resized_back_buffer: bool,
 
     pub resized_back_buffer_width: u32,
     pub resized_back_buffer_height: u32,

@@ -187,7 +187,7 @@ impl GraphicsDeviceManager{
         if self.is_full_screen {
             device_information.presentation_parameters.back_buffer_width = mode.width;
             device_information.presentation_parameters.back_buffer_height = mode.height;
-        } else if self.use_resized_backbuffer {
+        } else if self.use_resized_back_buffer {
             device_information.presentation_parameters.back_buffer_width = self.resized_back_buffer_width;
             device_information.presentation_parameters.back_buffer_height = self.resized_back_buffer_height;
         } else {
