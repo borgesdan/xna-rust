@@ -1,6 +1,6 @@
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{Game, GraphicsDeviceManager, GraphicsProfile};
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
+use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
 
 impl GraphicsDeviceManager {
     pub const DEFAULT_BACK_BUFFER_WIDTH: u32 = 800;
@@ -27,18 +27,44 @@ impl GraphicsDeviceManager {
         }
 
     }
-}
 
-impl GraphicsDeviceManager {
-    pub fn get_graphics_adapter(&self) -> Option<Box<GraphicsAdapter>> {
-        self.graphics_adapter.clone()
+    pub fn set_graphics_profile(&mut self, value: GraphicsProfile) {
+        self.graphics_profile = value;
+        self.is_device_dirty = true;
     }
 
-    pub fn get_graphics_device(&self) -> Option<Box<GraphicsDevice>> {
-        self.graphics_device.clone()
+    pub fn preferred_depth_stencil_format(&mut self, value: DepthFormat) {
+        self.depth_stencil_format = value;
+        self.is_device_dirty = true;
     }
 
-    pub fn get_game(&self) -> Option<Box<Game>> {
-        self.game.clone()
+    pub fn preferred_back_buffer_format(&mut self, value: SurfaceFormat) {
+        self.back_buffer_format = value;
+        self.is_device_dirty = true;
+    }
+
+    pub fn preferred_back_buffer_width(&mut self, value: u32) {
+        self.resized_back_buffer_width = value;
+        self.is_device_dirty = true;
+    }
+
+    pub fn preferred_back_buffer_height(&mut self, value: u32) {
+        self.resized_back_buffer_height = value;
+        self.is_device_dirty = true;
+    }
+
+    pub fn set_full_screen(&mut self, value: bool) {
+        self.is_full_screen = value;
+        self.is_device_dirty = true;
+    }
+
+    pub fn set_synchronize_with_vertical_retrace(&mut self, value: bool) {
+        self.synchronize_with_vertical_retrace = value;
+        self.is_device_dirty = true;
+    }
+
+    pub fn prefer_multi_sampling(&mut self,value: bool) {
+        self.allow_multi_sampling = value;
+        self.is_device_dirty = true;
     }
 }

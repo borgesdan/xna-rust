@@ -1,11 +1,10 @@
+use crate::xna::csharp::Exception;
+use crate::xna::framework::game::{GameWindow, GraphicsDeviceInformation, GraphicsDeviceManager};
+use crate::xna::framework::graphics::{DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters};
+use crate::xna::platform::windows::WindowsPresentationParameters;
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
-use crate::xna::csharp::Exception;
-use crate::xna::framework::AsBase;
-use crate::xna::framework::game::{GameWindow, GameWindowStyle, GraphicsDeviceInformation, GraphicsDeviceManager};
-use crate::xna::framework::graphics::{DepthFormat, DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters, SurfaceFormat};
-use crate::xna::platform::windows::{WindowsGraphicsDeviceManager, WindowsPresentationParameters};
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
@@ -41,11 +40,6 @@ impl GraphicsDeviceManager{
         self.is_full_screen = !state.as_bool();
 
         Ok(())
-    }
-
-    pub fn prefer_multi_sampling(&mut self,value: bool) {
-        self.allow_multi_sampling = value;
-        self.is_device_dirty = true;
     }
 
     fn change_device(&mut self, force_create: bool) -> Result<(), Exception> {

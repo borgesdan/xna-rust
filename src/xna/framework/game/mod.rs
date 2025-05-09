@@ -88,6 +88,8 @@ pub struct GraphicsDeviceManager {
     pub depth_stencil_format: DepthFormat,
     pub allow_multi_sampling: bool,
 
+    pub back_buffer_format: SurfaceFormat,
+
     #[cfg(target_os = "windows")]
     pub platform: WindowsGraphicsDeviceManager
 }
