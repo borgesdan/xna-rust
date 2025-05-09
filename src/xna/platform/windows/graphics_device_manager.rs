@@ -1,9 +1,9 @@
 use windows::core::BOOL;
-use windows::Win32::Foundation::RECT;
+use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use crate::xna::csharp::Exception;
 use crate::xna::framework::AsBase;
-use crate::xna::framework::game::{GraphicsDeviceInformation, GraphicsDeviceManager};
+use crate::xna::framework::game::{GameWindow, GameWindowStyle, GraphicsDeviceInformation, GraphicsDeviceManager};
 use crate::xna::framework::graphics::{DepthFormat, DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters, SurfaceFormat};
 use crate::xna::platform::windows::{WindowsGraphicsDeviceManager, WindowsPresentationParameters};
 
@@ -55,7 +55,7 @@ impl GraphicsDeviceManager{
 
         self.in_device_transition = true;
 
-        let mut best_device = self.find_best_platform_device()?;
+        let mut best_device = self.find_best_platform_device(force_create)?;
         let mut flag = true;
 
         if !force_create && self.graphics_device.is_some() {
@@ -64,7 +64,6 @@ impl GraphicsDeviceManager{
             if can_reset {
                 let mut pp = best_device.presentation_parameters.clone();
                 self.message_present_parameters(&mut pp)?;
-                best_device.presentation_parameters = pp;
                 Self::validate_graphics_device_information(&best_device)?;
                 self.graphics_device.as_mut().unwrap().reset(&best_device.presentation_parameters, &best_device.adapter)?;
                 flag = false;
@@ -82,15 +81,15 @@ impl GraphicsDeviceManager{
 
     }
 
-    fn find_best_platform_device(&mut self) -> Result<GraphicsDeviceInformation, Exception>{
+    fn find_best_platform_device(&mut self, any_suitable_device: bool) -> Result<GraphicsDeviceInformation, Exception>{
 
         let mut found_devices : Vec<GraphicsDeviceInformation> = Vec::new();
 
-        self.add_devices(&mut found_devices)?;
+        self.add_devices(any_suitable_device, &mut found_devices)?;
 
         if found_devices.len() == 0 && self.allow_multi_sampling {
             self.prefer_multi_sampling(false);
-            self.add_devices(&mut found_devices)?;
+            self.add_devices(any_suitable_device, &mut found_devices)?;
         }
 
         if found_devices.len() == 0 {
@@ -102,8 +101,6 @@ impl GraphicsDeviceManager{
         if found_devices.len() == 0 {
             return Err(Exception::new("No devices found.", None));
         }
-
-        Self::rank_devices_platform(&mut found_devices);
 
         Ok(found_devices[0].clone())
     }
@@ -134,7 +131,7 @@ impl GraphicsDeviceManager{
         Ok(())
     }
 
-    fn add_devices(&self, found_devices: &mut Vec<GraphicsDeviceInformation>)
+    fn add_devices(&self, any_suitable_device: bool, found_devices: &mut Vec<GraphicsDeviceInformation>)
     -> Result<(), Exception> {
         let handle = self.game.as_ref().unwrap()
             .game_window.as_ref().unwrap()
@@ -143,6 +140,15 @@ impl GraphicsDeviceManager{
         let adapters = GraphicsAdapter::adapters().unwrap();
 
         for adapter in adapters {
+
+            if !any_suitable_device {
+                let on_adapter = Self::is_window_on_adapter(&handle, &adapter)?;
+
+                if !on_adapter {
+                    continue;
+                }
+            }
+
             let base_device_info = GraphicsDeviceInformation {
                 adapter: adapter.clone(),
                 profile: self.graphics_profile,
@@ -292,6 +298,12 @@ impl GraphicsDeviceManager{
         }
 
         Ok(())
+    }
 
+    fn is_window_on_adapter(handle: &HWND, adapter: &GraphicsAdapter) ->Result<bool, Exception> {
+        let from_handle = GameWindow::screen_from_handle(handle)?;
+        let from_adapter = GameWindow::screen_from_adapter(adapter)?;
+
+        Ok(from_handle.is_some() && from_adapter.is_some() && from_handle == from_adapter)
     }
 }

@@ -21,17 +21,17 @@ impl GameWindow {
         }
     }
 
-    pub fn screen_from_handle(hwnd: &HWND) -> Option<Screen> {
+    pub fn screen_from_handle(hwnd: &HWND) -> Result<Option<Screen>, Exception> {
         unsafe {
             let h_monitor = MonitorFromWindow(*hwnd, MONITOR_DEFAULTTOPRIMARY);
 
             if h_monitor.is_invalid() {
-                return None;
+                return Ok(None);
             }
 
             let screen = Screen::from_monitor(h_monitor, HDC::default());
 
-            Some(screen)
+            Ok(Some(screen))
         }
     }
 
