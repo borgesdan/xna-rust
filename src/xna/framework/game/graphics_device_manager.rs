@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{Game, GraphicsDeviceManager, GraphicsProfile};
 use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
@@ -8,7 +11,7 @@ impl GraphicsDeviceManager {
 }
 
 impl GraphicsDeviceManager {
-    pub fn new(game: Option<Box<Game>>) -> Self {
+    pub fn new(game: Option<Rc<RefCell<Game>>>) -> Self {
         let adapter = GraphicsAdapter::default();
 
         let parameters = PresentationParameters {
@@ -21,7 +24,17 @@ impl GraphicsDeviceManager {
 
         GraphicsDeviceManager {
             game: game.clone(),
-            graphics_adapter: Some(Box::new(adapter)),
+            is_device_dirty: false,
+            graphics_device: None,
+            is_full_screen: false,
+            graphics_profile: GraphicsProfile::HiDef,
+            depth_stencil_format: DepthFormat::Depth24,
+            back_buffer_format: SurfaceFormat::Color,
+            synchronize_with_vertical_retrace: true,
+            use_resized_back_buffer: false,
+            allow_multi_sampling: false,
+            in_device_transition: false,
+            graphics_adapter: Some(Rc::new(RefCell::new(adapter))),
             presentation_parameters: parameters,
             ..Default::default()
         }

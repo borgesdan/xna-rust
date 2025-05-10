@@ -2,10 +2,13 @@ pub mod game;
 pub mod game_window;
 pub mod graphics_device_manager;
 
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
 use std::ops::Deref;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
 #[cfg(target_os = "windows")]
@@ -53,10 +56,10 @@ pub struct GameTime {
     pub total_time: TimeSpan,
 }
 
-#[derive(Default, PartialEq, Clone)]
+#[derive(Default, Clone)]
 pub struct Game {
-    pub game_window: Option<Box<GameWindow>>,
-    pub graphics_device: Option<Box<GraphicsDevice>>,
+    pub game_window: Option<Rc<RefCell<GameWindow>>>,
+    pub graphics_device: Option<Rc<RefCell<GraphicsDevice>>>,
     pub target_elapsed_time: TimeSpan,
     pub current_game_time: GameTime,
     pub is_fixed_time_step: bool,
@@ -74,11 +77,12 @@ pub struct Game {
     pub platform: WindowsGame
 }
 
-#[derive(Default, PartialEq, Clone)]
+#[derive(Default, Clone)]
 pub struct GraphicsDeviceManager {
-    pub presentation_parameters: PresentationParameters,    pub game: Option<Box<Game>>,
-    pub graphics_adapter: Option<Box<GraphicsAdapter>>,
-    pub graphics_device: Option<Box<GraphicsDevice>>,
+    pub presentation_parameters: PresentationParameters,
+    pub game: Option<Rc<RefCell<Game>>>,
+    pub graphics_adapter: Option<Rc<RefCell<GraphicsAdapter>>>,
+    pub graphics_device: Option<Rc<RefCell<GraphicsDevice>>>,
     pub is_device_dirty: bool,
     pub in_device_transition: bool,
     pub graphics_profile: GraphicsProfile,

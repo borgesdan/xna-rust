@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{GameWindow, GraphicsDeviceInformation, GraphicsDeviceManager};
 use crate::xna::framework::graphics::{DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters};
@@ -5,6 +8,7 @@ use crate::xna::platform::windows::WindowsPresentationParameters;
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
+use crate::xna::UnboxRc;
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
@@ -16,20 +20,20 @@ impl GraphicsDeviceManager{
     }
 
     pub fn toggle_full_screen(&mut self) -> Result<(), Exception> {
-        let mut swapchainn = self.graphics_device
-            .as_mut().unwrap().platform.swap_chain
-            .as_mut().unwrap();
+        let temp_device = self.graphics_device.unbox()?;
+        let mut device = temp_device.borrow_mut();
+        let mut swap_chain = device.platform.swap_chain.as_mut().unwrap();
 
         let mut state = BOOL(0);
         unsafe {
-            let mut result = swapchainn.GetFullscreenState(Some(&mut state), None);
+            let mut result = swap_chain.GetFullscreenState(Some(&mut state), None);
 
             if result.is_err() {
                 let error = Exception::convert_windows_error(result);
-                return Err(Exception::new("Toggle full screen failt", error));
+                return Err(Exception::new("Toggle full screen fail", error));
             }
 
-            result = swapchainn.SetFullscreenState(!state.as_bool(), None);
+            result = swap_chain.SetFullscreenState(!state.as_bool(), None);
 
             if result.is_err() {
                 let error = Exception::convert_windows_error(result);
@@ -53,13 +57,17 @@ impl GraphicsDeviceManager{
         let mut flag = true;
 
         if !force_create && self.graphics_device.is_some() {
-            let can_reset = self.can_reset_device(&best_device);
+            let can_reset = self.can_reset_device(&best_device)?;
 
             if can_reset {
                 let mut pp = best_device.presentation_parameters.clone();
                 self.message_present_parameters(&mut pp)?;
                 Self::validate_graphics_device_information(&best_device)?;
-                self.graphics_device.as_mut().unwrap().reset(&best_device.presentation_parameters, &best_device.adapter)?;
+
+                let temp_device = self.graphics_device.unbox()?;
+                let mut device = temp_device.borrow_mut();
+                device.reset(&best_device.presentation_parameters, &best_device.adapter)?;
+
                 flag = false;
             }
         }
@@ -113,25 +121,31 @@ impl GraphicsDeviceManager{
         let width = new_info.presentation_parameters.back_buffer_width;
         let height = new_info.presentation_parameters.back_buffer_height;
 
-        self.game.as_mut().unwrap().resize_window(width, height)?;
+        let temp_game = self.game.unbox()?;
+        let mut game = temp_game.borrow_mut();
 
-        let device = Box::new(GraphicsDevice::new_from_profile(&new_info.adapter, &new_info.profile, &new_info.presentation_parameters));
+        game.resize_window(width, height)?;
 
+        let device = Rc::new(RefCell::new(GraphicsDevice::new_from_profile(&new_info.adapter, &new_info.profile, &new_info.presentation_parameters)));
         self.graphics_device = Some(device.clone());
-        self.graphics_device.as_mut().unwrap().initialize()?;
+        game.attach_graphics_device(device.clone());
 
-        self.game.as_mut().unwrap().attach_graphics_device(device);
+        let mut temp_device = device.borrow_mut();
+        temp_device.initialize()?;
 
         Ok(())
     }
 
     fn add_devices(&self, any_suitable_device: bool, found_devices: &mut Vec<GraphicsDeviceInformation>)
     -> Result<(), Exception> {
-        let handle = self.game.as_ref().unwrap()
-            .game_window.as_ref().unwrap()
-            .platform.hwnd;
+        let temp_game = self.game.unbox()?;
+        let game = temp_game.borrow();
+        let temp_game_window = game.game_window.unbox()?;
+        let game_window = temp_game_window.borrow();
 
-        let adapters = GraphicsAdapter::adapters().unwrap();
+        let handle = game_window.platform.hwnd;
+
+        let adapters = GraphicsAdapter::adapters()?;
 
         for adapter in adapters {
 
@@ -211,8 +225,14 @@ impl GraphicsDeviceManager{
         Ok(())
     }
 
-    fn can_reset_device(&self, new_device_info: &GraphicsDeviceInformation) -> bool{
-        self.graphics_device.as_ref().unwrap().graphics_profile == new_device_info.profile
+    fn can_reset_device(&self, new_device_info: &GraphicsDeviceInformation) -> Result<bool, Exception> {
+        let profile = self.graphics_device
+            .unbox()?
+            .borrow()
+            .graphics_profile
+            .clone();
+
+        Ok(profile == new_device_info.profile)
     }
 
     fn message_present_parameters(&self, parameters: &mut PresentationParameters) -> Result<(), Exception> {
@@ -228,9 +248,16 @@ impl GraphicsDeviceManager{
                 return Err(Exception::invalid_operation("Graphics component not attached to game", None));
             }
 
-            parameters.platform.hwnd = self.game.as_ref().unwrap()
-                .game_window.as_ref().unwrap()
-                .platform.hwnd.clone();
+            let hwnd = self.game
+                .unbox()?
+                .borrow()
+                .game_window
+                .unbox()?
+                .borrow()
+                .platform.hwnd
+                .clone();
+
+            parameters.platform.hwnd = hwnd;
         }
 
         let mut rect = RECT::default();

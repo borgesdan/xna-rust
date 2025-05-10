@@ -71,7 +71,7 @@ impl GameWindow {
             let ex_style = WINDOW_EX_STYLE(style);
             let wn_style = WINDOW_STYLE(style);
 
-            let window_handle = CreateWindowExW(
+            self.platform.hwnd = CreateWindowExW(
                 WINDOW_EX_STYLE::default(),
                 PCWSTR(class_name.as_ptr()),
                 PCWSTR(Self::to_wide(self.title.as_str()).as_ptr()),

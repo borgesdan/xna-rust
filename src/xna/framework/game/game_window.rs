@@ -27,8 +27,15 @@ impl GameWindow {
         let screens = Screen::all_screens();
 
         for screen in &screens {
+            if adapter.current_output.is_none(){
+                continue;
+            }
+
             let device_name = &screen.device_name;
             let adp_device_name = &adapter.current_output.as_ref().unwrap().device_name;
+
+            println!("Device name: {}", device_name);
+            println!("Adapter Device name: {}", adp_device_name);
 
             if adp_device_name == device_name {
                 return Ok(Some(screen.clone()));

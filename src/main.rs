@@ -1,6 +1,9 @@
 mod xna;
 
+use std::cell::RefCell;
 use std::fmt::Pointer;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, HINSTANCE};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleW};
@@ -12,13 +15,21 @@ use windows::Win32::UI::WindowsAndMessaging::{
 
 use crate::xna::framework::{Color, Point};
 use crate::xna::csharp::forms::Screen;
-use crate::xna::framework::game::{GameWindow, GameWindowStyle};
+use crate::xna::framework::game::{Game, GameWindow, GameWindowStyle, GraphicsDeviceManager};
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsAdapterOutput, GraphicsDevice, PresentationParameters, SurfaceFormat, SwapEffect};
 
 fn main() {
 
-    let adapter = GraphicsAdapter::default_adapter();
+    let mut game = Rc::new(RefCell::new(Game::new()));
 
+    let mut graphics_device_manager = Box::new(GraphicsDeviceManager::new(Some(game.clone())));
+
+    //let apply = graphics_device_manager.apply_changes();
+    game.borrow_mut().run(&mut graphics_device_manager);
+
+
+    // let adapter = GraphicsAdapter::default_adapter();
+    //
     // let g_device = GraphicsDevice::new();
     // let mut device = g_device.create();
     // let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" ).unwrap();

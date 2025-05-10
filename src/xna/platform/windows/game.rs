@@ -1,12 +1,17 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use crate::xna::csharp::{Exception, TimeSpan};
-use crate::xna::framework::game::{Game, GameTime};
+use crate::xna::framework::game::{Game, GameTime, GraphicsDeviceManager};
 use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
+use crate::xna::UnboxRc;
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {
-        self.get_game_window()?.close()
+        let mut gw = self.game_window.unbox()?;
+        gw.borrow_mut().close()
     }
 
     fn start_game_loop(&mut self) -> Result<usize, Exception> {
@@ -15,7 +20,8 @@ impl Game {
         let mut msg = MSG::default();
 
         loop {
-            let game_window = self.get_game_window()?;
+            let gw_temp = self.game_window.unbox()?;
+            let game_window = gw_temp.borrow();
 
             unsafe{
                 if PeekMessageA(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
@@ -67,13 +73,15 @@ impl Game {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<usize, Exception> {
+    pub fn run(&mut self, device_manager: &mut GraphicsDeviceManager) -> Result<usize, Exception> {
         if self.platform.is_running {
             return Ok(1)
         }
 
-        let mut game_window = self.get_game_window()?;
-        game_window.create()?;
+        let mut game_window = self.game_window.unbox()?;
+        game_window.borrow_mut().create()?;
+
+        device_manager.apply_changes()?;
 
         self.initialize()?;
 
@@ -125,7 +133,10 @@ impl Game {
             self.draw_fn.unwrap()(game_time)?
         }
 
-        self.get_graphics_device()?.present();
+        self.graphics_device
+            .unbox()?
+            .borrow()
+            .present();
 
         Ok(())
     }
@@ -147,7 +158,9 @@ impl Game {
     }
 
     pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), Exception> {
-        let mut game_window = self.get_game_window()?;
+        let gw_temp = self.game_window.unbox()?;
+        let mut game_window = gw_temp.borrow_mut();
+
         let windows_bounds = game_window.client_bounds();
 
         if windows_bounds.width != width as i32 || windows_bounds.height != height as i32 {
@@ -160,7 +173,7 @@ impl Game {
         Ok(())
     }
 
-    pub fn attach_graphics_device(&mut self, device: Box<GraphicsDevice>) {
+    pub fn attach_graphics_device(&mut self, device: Rc<RefCell<GraphicsDevice>>) {
         self.graphics_device = Some(device);
     }
 

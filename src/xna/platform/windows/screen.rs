@@ -14,7 +14,7 @@ impl Screen {
         if SystemInformation::multi_monitor_support() || hmonitor == primary_monitor {
             screen.bounds = SystemInformation::virtual_screen();
             screen.primary = true;
-            screen.device_name = "DISPLAY".to_string();
+            screen.device_name = "\\\\.\\DISPLAY1".to_string();
         } else {
             let info = Self::get_monitor_info(&hmonitor);
             screen.bounds = Rectangle::from_ltrb(

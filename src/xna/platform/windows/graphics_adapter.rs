@@ -26,6 +26,7 @@ impl GraphicsAdapter {
                     }
                 }
 
+                adapters.push(result?);
                 count += 1;
             }
         }
@@ -70,11 +71,18 @@ impl GraphicsAdapter {
                 }
 
                 let description = description.unwrap();
-                let device_name = String::from_utf16(&description.DeviceName);
 
-                if device_name.is_err() {
+                let device_nam_u16 = String::from_utf16(&description.DeviceName);
+
+                if device_nam_u16.is_err() {
                     return Err(Exception::new("Error converting device name", None));
                 }
+
+                let device_name_16 = device_nam_u16.unwrap();
+                let terminator = device_name_16.find('\0');
+
+                let slice = std::slice::from_raw_parts(device_name_16.as_ptr(), terminator.unwrap());
+                let device_name = String::from_utf8(slice.to_vec()).unwrap();
 
                 let supported_display_modes = Self::get_output_supported_display_modes(&output)?;
                 let back_buffer_width = GraphicsDeviceManager::DEFAULT_BACK_BUFFER_WIDTH;
@@ -82,7 +90,7 @@ impl GraphicsAdapter {
                 let current_display_mode = Self::get_output_current_display_mode(&supported_display_modes, &SurfaceFormat::Color, back_buffer_width, back_buffer_height);
 
                 let mut out_adapter = GraphicsAdapterOutput {
-                    device_name: device_name.unwrap(),
+                    device_name: device_name,
                     attached_to_desktop: description.AttachedToDesktop.as_bool(),
                     desktop_coordinates: Rectangle {
                         x: description.DesktopCoordinates.left,
