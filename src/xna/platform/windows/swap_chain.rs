@@ -1,12 +1,12 @@
 use crate::xna::framework::graphics::{GraphicsDevice, SwapChain};
-use crate::xna::platform::windows::bool_to_win_bool;
+use crate::xna::platform::windows::{WinBool};
 use windows::Win32::Graphics::Dxgi::Common::DXGI_SAMPLE_DESC;
 use windows::Win32::Graphics::Dxgi::{IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
 
 impl SwapChain {
     pub fn to_dx(&self) -> DXGI_SWAP_CHAIN_DESC {
         DXGI_SWAP_CHAIN_DESC {
-            Windowed: bool_to_win_bool(self.windowed),
+            Windowed: self.windowed.to_win_bool(),
             BufferCount: self.buffer_count,
             Flags: self.flags.to_dx().0 as u32,
             BufferDesc: self.display.to_dx(),

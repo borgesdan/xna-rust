@@ -145,8 +145,14 @@ pub struct WindowsScreen {
     pub h_monitor: HMONITOR,
 }
 
-pub fn bool_to_win_bool(bool: bool) -> BOOL {
-    if bool { TRUE } else { FALSE }
+trait WinBool {
+    fn to_win_bool(&self) -> BOOL;
+}
+
+impl WinBool for bool {
+    fn to_win_bool(&self) -> BOOL {
+        BOOL(self.clone() as i32)
+    }
 }
 
 impl Exception {

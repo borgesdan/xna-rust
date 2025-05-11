@@ -1,6 +1,6 @@
 use windows::Win32::Graphics::Direct3D11::{D3D11_DEPTH_STENCILOP_DESC, D3D11_DEPTH_STENCIL_DESC, D3D11_DEPTH_WRITE_MASK};
 use crate::xna::framework::graphics::{DepthFace, DepthStencilState};
-use crate::xna::platform::windows::bool_to_win_bool;
+use crate::xna::platform::windows::WinBool;
 
 impl DepthFace {
     pub fn to_dx(&self) -> D3D11_DEPTH_STENCILOP_DESC {
@@ -16,8 +16,8 @@ impl DepthFace {
 impl DepthStencilState {
     pub fn to_dx(&self) -> D3D11_DEPTH_STENCIL_DESC {
         D3D11_DEPTH_STENCIL_DESC {
-            DepthEnable: bool_to_win_bool(self.depth_enable),
-            StencilEnable: bool_to_win_bool(self.stencil_enable),
+            DepthEnable: self.depth_enable.to_win_bool(),
+            StencilEnable: self.stencil_enable.to_win_bool(),
             DepthFunc: self.depth_function.to_dx(),
             FrontFace: self.front_face.to_dx(),
             BackFace: self.back_face.to_dx(),
