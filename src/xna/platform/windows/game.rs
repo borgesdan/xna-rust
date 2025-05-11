@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::game::{Game, GameTime, GraphicsDeviceManager};
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_CLOSE, WM_DESTROY, WM_NCLBUTTONDOWN, WM_QUIT};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
 use crate::xna::UnboxRc;
@@ -24,15 +24,28 @@ impl Game {
             let game_window = gw_temp.borrow();
 
             unsafe{
-                if PeekMessageA(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
+                if PeekMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
                     let _ = TranslateMessage(&msg);
                     let _ = DispatchMessageA(&msg);
                 } else {
+                    if msg.message == WM_QUIT{
+                        print!("WM_QUIT");
+                    }
+
+                    if msg.message == WM_NCLBUTTONDOWN {
+                        print!("WM_NCLBUTTONDOWN");
+                    }
+
+                    if msg.message == WM_CLOSE {
+                        print!("WM_CLOSE");
+                    }
+
                     self.tick()?;
                 }
             }
 
             if msg.message == WM_QUIT{
+                print!("WM_QUIT");
                 break;
             }
         }
@@ -73,21 +86,29 @@ impl Game {
         Ok(())
     }
 
-    pub fn run(&mut self, device_manager: &mut GraphicsDeviceManager) -> Result<usize, Exception> {
+    pub fn create_window(&mut self) -> Result<(), Exception> {
         if self.platform.is_running {
-            return Ok(1)
+            return Ok(());
         }
 
         let mut game_window = self.game_window.unbox()?;
         game_window.borrow_mut().create()?;
 
-        device_manager.apply_changes()?;
+        self.is_window_created = true;
+
+        Ok(())
+    }
+
+    pub fn run(&mut self) -> Result<usize, Exception> {
+        if self.platform.is_running {
+            return Ok(1)
+        }
+
+        if !self.is_window_created {
+            return Err(Exception::new("Window is not running", None));
+        }
 
         self.initialize()?;
-
-        if self.graphics_device.is_none() {
-            return Err(Exception::new("The graphics device is invalid.", None))
-        }
 
         self.platform.is_running = true;
         self.begin_run()?;
@@ -131,6 +152,10 @@ impl Game {
     fn draw(&mut self, game_time: &GameTime)-> Result<(), Exception> {
         if self.draw_fn.is_some() {
             self.draw_fn.unwrap()(game_time)?
+        }
+
+        if self.graphics_device.is_none() {
+            return Ok(());
         }
 
         self.graphics_device
@@ -185,14 +210,12 @@ impl Game {
         self.platform.step_timer.reset_elapsed_time()
     }
 
-    pub fn target_elapsed_time(&mut self) {
+    pub fn set_target_elapsed_time(&mut self, value: TimeSpan) {
         if !self.is_fixed_time_step{
             return;
         }
 
-        let ticks = &self.target_elapsed_time.ticks;
-
-        self.platform.step_timer.set_target_elapsed_ticks(*ticks as u64);
+        self.platform.step_timer.set_target_elapsed_ticks(value.ticks as u64);
     }
 
     pub fn set_is_fixed_time_step(&mut self, value: bool) {

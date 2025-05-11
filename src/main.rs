@@ -21,11 +21,18 @@ use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsAdapterOutput, Gr
 fn main() {
 
     let mut game = Rc::new(RefCell::new(Game::new()));
-
     let mut graphics_device_manager = Box::new(GraphicsDeviceManager::new(Some(game.clone())));
 
-    //let apply = graphics_device_manager.apply_changes();
-    game.borrow_mut().run(&mut graphics_device_manager);
+    game.borrow_mut().create_window();
+    graphics_device_manager.apply_changes();
+
+    let run = game.borrow_mut().run();
+
+    if run.is_err() {
+        std::process::exit(1);
+    }
+
+    std::process::exit(run.unwrap() as i32);
 
 
     // let adapter = GraphicsAdapter::default_adapter();

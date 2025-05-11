@@ -73,6 +73,8 @@ pub struct Game {
     pub initialize_fn: Option<fn() ->Result<(), Exception>>,
     pub load_content_fn: Option<fn() ->Result<(), Exception>>,
 
+    pub is_window_created: bool,
+
     #[cfg(target_os = "windows")]
     pub platform: WindowsGame
 }

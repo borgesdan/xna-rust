@@ -1,14 +1,30 @@
-use windows::Win32::System::Performance::QueryPerformanceCounter;
+use windows::Win32::System::Performance::{QueryPerformanceCounter, QueryPerformanceFrequency};
 use crate::xna::csharp::Exception;
 use crate::xna::platform::windows::StepTimer;
 
 impl StepTimer {
     pub fn new() ->Self {
-        StepTimer {
+        let mut step_timer = StepTimer {
             is_fixed_time_step: false,
-            target_elapsed_ticks: Self::TICKS_PER_SECOND,
+            target_elapsed_ticks: Self::TICKS_PER_SECOND / 60,
             ..Default::default()
+        };
+
+        unsafe {
+            let freq = QueryPerformanceFrequency(&mut step_timer.frequency);
+
+            if freq.is_err() {
+                step_timer.frequency = 10000000;
+            }
+
+            let counter = QueryPerformanceCounter(&mut step_timer.last_time);
+
+            if counter.is_err() {
+                step_timer.last_time = 83609152182;
+            }
         }
+
+        step_timer
     }
 
     pub fn get_elapsed_ticks(&self) -> u64 {
