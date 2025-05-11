@@ -19,7 +19,7 @@ use crate::xna::framework::graphics::{Blend, BlendFunction, ColorWriteChannels, 
                                       CullMode, DisplayMode, DisplayModeScaling, FillMode, ScanlineOrder,
                                       StencilOperation, SurfaceFormat, SurfaceUsage, SwapChainFlag,
                                       SwapEffect, TextureAddressMode, TextureFilter};
-use windows::core::BOOL;
+use windows::core::{Error, BOOL};
 use windows::Win32::Foundation::{FALSE, HWND, TRUE};
 use windows::Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL;
 use windows::Win32::Graphics::Direct3D11::{ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device,
@@ -155,15 +155,16 @@ impl WinBool for bool {
     }
 }
 
-impl Exception {
-    pub fn convert_windows_error(result: windows::core::Result<()>) -> Option<Self> {
-        if result.is_ok(){
-            return None;
-        }
+trait WinErrorException {
+    fn to_exception(&self) -> Exception;
+}
 
-        let error = result.err().unwrap();
-        let ex = Exception::create(error.message().as_str(), error.code().0 as isize, None);
-        Some(ex)
+impl WinErrorException for Error {
+    fn to_exception(&self) -> Exception {
+        let message = self.message();
+        let code = self.code();
+
+        Exception::create(message.as_str(), code.0 as isize, None)
     }
 }
 
