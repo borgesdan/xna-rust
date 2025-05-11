@@ -20,8 +20,6 @@ use crate::xna::platform::windows::WindowsGraphicsDevice;
 use crate::xna::platform::windows::WindowsPresentationParameters;
 #[cfg(target_os = "windows")]
 use crate::xna::platform::windows::WindowsRenderTarget2D;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsTexture2D;
 
 pub trait IPackedVector {
     fn to_vector4(&self) -> Vector4;
@@ -312,9 +310,6 @@ pub struct Texture2D {
     pub width: u32,
     pub height: u32,
     pub format: SurfaceFormat,
-
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsTexture2D
 }
 
 #[derive(Default, PartialEq, Clone)]

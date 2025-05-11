@@ -140,13 +140,6 @@ pub struct WindowsRenderTarget2D {
     pub texture: Option<ID3D11Texture2D>
 }
 
-#[derive(Default, Clone, PartialEq, Debug,)]
-pub struct WindowsTexture2D {
-    pub texture: Option<ID3D11Texture2D>,
-    pub shader: Option<ID3D11ShaderResourceView>,
-    pub sub_resource: D3D11_SUBRESOURCE_DATA,
-}
-
 #[derive(Default, Clone, PartialEq, Debug, Eq, Copy)]
 pub struct WindowsScreen {
     pub h_monitor: HMONITOR,
