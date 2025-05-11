@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::game::{Game, GameTime, GraphicsDeviceManager};
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_CLOSE, WM_DESTROY, WM_NCLBUTTONDOWN, WM_QUIT};
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, DispatchMessageW, GetMessageW, PeekMessageA, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_CLOSE, WM_DESTROY, WM_NCLBUTTONDOWN, WM_QUIT};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
 use crate::xna::UnboxRc;
@@ -24,29 +24,16 @@ impl Game {
             let game_window = gw_temp.borrow();
 
             unsafe{
-                if PeekMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
-                    let _ = TranslateMessage(&msg);
-                    let _ = DispatchMessageA(&msg);
+                if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).into() {
+                            let _ = TranslateMessage(&msg);
+                            let _ = DispatchMessageW(&msg);
+
+                            if msg.message == WM_QUIT || msg.message == 0 {
+                                break;
+                            }
                 } else {
-                    if msg.message == WM_QUIT{
-                        print!("WM_QUIT");
-                    }
-
-                    if msg.message == WM_NCLBUTTONDOWN {
-                        print!("WM_NCLBUTTONDOWN");
-                    }
-
-                    if msg.message == WM_CLOSE {
-                        print!("WM_CLOSE");
-                    }
-
                     self.tick()?;
                 }
-            }
-
-            if msg.message == WM_QUIT{
-                print!("WM_QUIT");
-                break;
             }
         }
 
