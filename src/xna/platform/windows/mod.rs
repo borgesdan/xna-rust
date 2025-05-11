@@ -148,7 +148,6 @@ pub struct WindowsScreen {
 trait WinBool {
     fn to_win_bool(&self) -> BOOL;
 }
-
 impl WinBool for bool {
     fn to_win_bool(&self) -> BOOL {
         BOOL(self.clone() as i32)
@@ -158,7 +157,6 @@ impl WinBool for bool {
 trait WinErrorException {
     fn to_exception(&self) -> Exception;
 }
-
 impl WinErrorException for Error {
     fn to_exception(&self) -> Exception {
         let message = self.message();
@@ -168,8 +166,12 @@ impl WinErrorException for Error {
     }
 }
 
-impl Blend {
-    pub fn to_dx(&self) -> D3D11_BLEND {
+trait D3DConverter<T> {
+    fn to_d3d(&self) -> T;
+}
+
+impl D3DConverter<D3D11_BLEND> for Blend {
+    fn to_d3d(&self) -> D3D11_BLEND {
         match self {
             Blend::Zero => D3D11_BLEND_ZERO,
             Blend::One => D3D11_BLEND_ONE,
