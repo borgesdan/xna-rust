@@ -23,14 +23,15 @@ impl Game {
             let gw_temp = self.game_window.unbox()?;
             let game_window = gw_temp.borrow();
 
-            unsafe{
+            unsafe {
                 if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).into() {
-                            let _ = TranslateMessage(&msg);
-                            let _ = DispatchMessageW(&msg);
+                    let _ = TranslateMessage(&msg);
+                    let _ = DispatchMessageW(&msg);
 
-                            if msg.message == WM_QUIT || msg.message == 0 {
-                                break;
-                            }
+                    //TODO: por algum motivo WM_QUIT não é enviado após a janela ser fechada.
+                    if msg.message == WM_QUIT || msg.message == 0 {
+                        break;
+                    }
                 } else {
                     self.tick()?;
                 }
@@ -47,7 +48,7 @@ impl Game {
     fn tick(&mut self) -> Result<(), Exception> {
         let mut timer = self.platform.step_timer.clone();
 
-        let mut lambda=  || -> Result<(), Exception> {
+        let mut lambda = || -> Result<(), Exception> {
             let elapsed = self.platform.step_timer.get_elapsed_seconds();
             let total = self.platform.step_timer.get_total_seconds();
             let elapsed_time_span = TimeSpan::from_seconds(elapsed as i32)?;
@@ -88,7 +89,7 @@ impl Game {
 
     pub fn run(&mut self) -> Result<usize, Exception> {
         if self.platform.is_running {
-            return Ok(1)
+            return Ok(1);
         }
 
         if !self.is_window_created {
@@ -128,7 +129,7 @@ impl Game {
         Ok(())
     }
 
-    fn begin_draw(&self)-> Result<(), Exception> {
+    fn begin_draw(&self) -> Result<(), Exception> {
         if self.begin_fn.is_some() {
             self.begin_fn.unwrap()()?
         }
@@ -136,7 +137,7 @@ impl Game {
         Ok(())
     }
 
-    fn draw(&mut self, game_time: &GameTime)-> Result<(), Exception> {
+    fn draw(&mut self, game_time: &GameTime) -> Result<(), Exception> {
         if self.draw_fn.is_some() {
             self.draw_fn.unwrap()(game_time)?
         }
@@ -153,7 +154,7 @@ impl Game {
         Ok(())
     }
 
-    fn end_draw(&mut self)-> Result<(), Exception> {
+    fn end_draw(&mut self) -> Result<(), Exception> {
         if self.end_fn.is_some() {
             self.end_fn.unwrap()()?
         }
@@ -161,7 +162,7 @@ impl Game {
         Ok(())
     }
 
-    fn begin_run(&mut self)-> Result<(), Exception> {
+    fn begin_run(&mut self) -> Result<(), Exception> {
         if self.begin_run_fn.is_some() {
             self.begin_run_fn.unwrap()()?
         }
@@ -198,7 +199,7 @@ impl Game {
     }
 
     pub fn set_target_elapsed_time(&mut self, value: TimeSpan) {
-        if !self.is_fixed_time_step{
+        if !self.is_fixed_time_step {
             return;
         }
 
@@ -209,5 +210,4 @@ impl Game {
         self.is_fixed_time_step = value;
         self.platform.step_timer.set_fixed_time_step(value);
     }
-
 }
