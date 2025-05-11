@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
 #[cfg(target_os = "windows")]
-use crate::xna::platform::windows::{WindowsGame, WindowsGameWindow, WindowsGraphicsDeviceManager};
+use crate::xna::platform::windows::{WindowsGame, WindowsGameWindow};
 
 pub enum DisplayOrientation {
     Default,
@@ -96,9 +96,6 @@ pub struct GraphicsDeviceManager {
     pub depth_stencil_format: DepthFormat,
     pub allow_multi_sampling: bool,
     pub back_buffer_format: SurfaceFormat,
-
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGraphicsDeviceManager
 }
 
 #[derive(Default, PartialEq, Clone, Copy, Eq)]
