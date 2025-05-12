@@ -93,7 +93,7 @@ impl GraphicsDevice {
             }
 
             //Swap Chain
-            let swap_chain = self.swap_chain.initialize(self);
+            let swap_chain = self.swap_chain.initialize(self)?;
             self.platform.swap_chain = swap_chain;
 
             //Render Target
