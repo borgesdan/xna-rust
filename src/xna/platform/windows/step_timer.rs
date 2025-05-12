@@ -1,5 +1,5 @@
 use windows::Win32::System::Performance::{QueryPerformanceCounter, QueryPerformanceFrequency};
-use crate::xna::csharp::Exception;
+use crate::xna::csharp::{Exception, ExceptionConverter};
 use crate::xna::platform::windows::StepTimer;
 
 impl StepTimer {
@@ -57,18 +57,15 @@ impl StepTimer {
 
     pub fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
         unsafe {
-            let query = QueryPerformanceCounter(&mut self.last_time);
+            let query = QueryPerformanceCounter(&mut self.last_time)
+                .unwrap_or_exception("QueryPerfomanceCounter failed.")?;
 
-            match query {
-                Ok(_) => {
-                    self.left_over_ticks = 0;
-                    self.frames_per_second = 0;
-                    self.frames_this_second = 0;
-                    self.second_counter = 0;
-                    Ok(())
-                }
-                Err(_) => Err(Exception::new("", None)),
-            }
+            self.left_over_ticks = 0;
+            self.frames_per_second = 0;
+            self.frames_this_second = 0;
+            self.second_counter = 0;
+
+            Ok(())
         }
     }
 
@@ -76,11 +73,8 @@ impl StepTimer {
         let mut current_time : i64 = 0;
 
         unsafe {
-            let query = QueryPerformanceCounter(&mut current_time);
-
-            if query.is_err() {
-                return Err(Exception::new("QueryPerformanceCounter", None));
-            }
+            let query = QueryPerformanceCounter(&mut current_time)
+                .unwrap_or_exception("QueryPerformanceCounter")?;
         }
 
         let mut time_delta:u64 = (current_time - self.last_time) as u64;
