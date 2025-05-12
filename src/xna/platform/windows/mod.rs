@@ -106,17 +106,15 @@ impl WinBool for bool {
     }
 }
 
-trait WinErrorException {
-    fn to_exception(&self) -> Exception;
-}
-impl WinErrorException for Error {
-    fn to_exception(&self) -> Exception {
-        let message = self.message();
-        let code = self.code();
+impl From<Error> for Exception {
+    fn from(value: Error) -> Self {
+        let message = value.message();
+        let code = value.code();
 
         Exception::create(message.as_str(), code.0 as isize, None)
     }
 }
+
 impl From<Blend> for D3D11_BLEND {
     fn from(value: Blend) -> Self {
         match value {

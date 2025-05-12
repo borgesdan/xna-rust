@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{GameWindow, GraphicsDeviceInformation, GraphicsDeviceManager};
 use crate::xna::framework::graphics::{DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters};
-use crate::xna::platform::windows::{WinErrorException, WindowsPresentationParameters};
+use crate::xna::platform::windows::{ WindowsPresentationParameters};
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
@@ -29,14 +29,14 @@ impl GraphicsDeviceManager{
             let mut result = swap_chain.GetFullscreenState(Some(&mut state), None);
 
             if result.is_err() {
-                let error = result.err().unwrap().to_exception();
+                let error = Exception::from(result.err().unwrap());
                 return Err(Exception::new("Toggle full screen fail", Some(error)));
             }
 
             result = swap_chain.SetFullscreenState(!state.as_bool(), None);
 
             if result.is_err() {
-                let error = result.err().unwrap().to_exception();
+                let error = Exception::from(result.err().unwrap());
                 return Err(Exception::new("Toggle full screen failt", Some(error)));
             }
         }
