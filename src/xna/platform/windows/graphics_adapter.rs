@@ -1,5 +1,5 @@
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIOutput, DXGI_ENUM_MODES, DXGI_ENUM_MODES_INTERLACED, DXGI_ENUM_MODES_SCALING, DXGI_ENUM_MODES_STEREO};
-use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC};
+use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC, DXGI_MODE_SCANLINE_ORDER};
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{GraphicsDeviceManager, GraphicsProfile};
 use crate::xna::framework::graphics::{DepthFormat, DisplayMode, DisplayModeCollection, DisplayModeScaling, GraphicsAdapter, GraphicsAdapterOutput, ScanlineOrder, SurfaceFormat};
@@ -116,7 +116,7 @@ impl GraphicsAdapter {
     fn get_output_supported_display_modes(output: &IDXGIOutput) -> Result<DisplayModeCollection, Exception> {
         unsafe {
             //TODO: no momento só Color é suportado
-            let format = SurfaceFormat::Color.to_dx();
+            let format = DXGI_FORMAT::from(SurfaceFormat::Color);
 
             let mut num_modes = 0;
 
@@ -153,8 +153,8 @@ impl GraphicsAdapter {
                     format: SurfaceFormat::Color,
                     refresh_rate_denominator: mode.RefreshRate.Denominator,
                     refresh_rate_numerator: mode.RefreshRate.Numerator,
-                    scanline_order: ScanlineOrder::from(&mode.ScanlineOrdering),
-                    scaling: DisplayModeScaling::from(&mode.Scaling),
+                    scanline_order: ScanlineOrder::from(mode.ScanlineOrdering.clone()),
+                    scaling: DisplayModeScaling::from(mode.Scaling.clone()),
                 };
 
                 supported_displays.push(dm);
@@ -229,7 +229,7 @@ impl GraphicsAdapter {
 
     pub fn query_back_buffer_format(&self, format: &SurfaceFormat, depth_format: &DepthFormat, multi_sample_count: u32)
     -> Result<(SurfaceFormat, DepthFormat, u32), Exception> {
-        if format.to_dx() == DXGI_FORMAT_UNKNOWN {
+        if DXGI_FORMAT::from(format.clone()) == DXGI_FORMAT_UNKNOWN {
             return Err(Exception::new("Unsupported backbuffer format.", None));
         }
 
@@ -238,7 +238,7 @@ impl GraphicsAdapter {
         let selected_multi_sample_count = multi_sample_count;
 
         let mode_to_match = DXGI_MODE_DESC {
-            Format: format.to_dx(),
+            Format: DXGI_FORMAT::from(format.clone()),
             ..Default::default()
         };
 

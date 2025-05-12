@@ -251,6 +251,7 @@ pub struct SamplerStateCollection {
 pub enum SurfaceFormat {
     #[default]
     Color,
+    Unknown,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]

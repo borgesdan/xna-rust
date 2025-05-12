@@ -1,6 +1,6 @@
-use windows::Win32::Graphics::Direct3D11::{D3D11_BLEND, D3D11_BLEND_DESC, D3D11_BLEND_OP};
+use windows::Win32::Graphics::Direct3D11::{D3D11_BLEND, D3D11_BLEND_DESC, D3D11_BLEND_OP, D3D11_COLOR_WRITE_ENABLE};
 use crate::xna::framework::graphics::BlendState;
-use crate::xna::platform::windows::{D3DConverter, WinBool};
+use crate::xna::platform::windows::{WinBool};
 
 impl BlendState{
     pub fn to_dx(&self) -> D3D11_BLEND_DESC {
@@ -11,13 +11,13 @@ impl BlendState{
         let mut index = 0;
         for target in &self.render_targets {
             description.RenderTarget[index].BlendEnable = target.enabled.to_win_bool();
-            description.RenderTarget[index].SrcBlend = target.source.to_d3d();
-            description.RenderTarget[index].DestBlend = target.destination.to_d3d();
-            description.RenderTarget[index].BlendOp = target.operation.to_dx();
-            description.RenderTarget[index].SrcBlendAlpha = target.source_alpha.to_d3d();
-            description.RenderTarget[index].DestBlendAlpha = target.destination_alpha.to_d3d();
-            description.RenderTarget[index].BlendOpAlpha = target.operation_alpha.to_dx();
-            description.RenderTarget[index].RenderTargetWriteMask = target.write_mask.to_dx().0 as u8;
+            description.RenderTarget[index].SrcBlend = D3D11_BLEND::from(target.source);
+            description.RenderTarget[index].DestBlend = D3D11_BLEND::from(target.destination);
+            description.RenderTarget[index].BlendOp = D3D11_BLEND_OP::from(target.operation);
+            description.RenderTarget[index].SrcBlendAlpha = D3D11_BLEND::from(target.source_alpha);
+            description.RenderTarget[index].DestBlendAlpha = D3D11_BLEND::from(target.destination_alpha);
+            description.RenderTarget[index].BlendOpAlpha = D3D11_BLEND_OP::from(target.operation_alpha);
+            description.RenderTarget[index].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::from(target.write_mask).0 as u8;
 
             index += 1;
         }

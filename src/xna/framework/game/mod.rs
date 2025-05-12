@@ -153,7 +153,8 @@ impl PartialOrd for GraphicsDeviceInformation {
 impl SurfaceFormat {
     pub fn rank(format: &SurfaceFormat) -> i32 {
         match format {
-            SurfaceFormat::Color => 32
+            SurfaceFormat::Color => 32,
+            _ => 0
         }
     }
 }

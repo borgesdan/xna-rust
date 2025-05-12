@@ -3,7 +3,7 @@ use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVe
 use crate::xna::framework::Color;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
-use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_CREATE_DEVICE_DEBUG, D3D11_SDK_VERSION, D3D11_VIEWPORT};
+use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_CREATE_DEVICE_DEBUG, D3D11_DEPTH_STENCIL_DESC, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, DXGI_MWA_FLAGS, DXGI_PRESENT};
 use crate::xna::platform::windows::WindowsGraphicsDevice;
 
@@ -148,7 +148,7 @@ impl GraphicsDevice {
 
         unsafe {
             for sampler in &collection.samplers {
-                let description = sampler.to_dx();
+                let description = D3D11_SAMPLER_DESC::from(sampler.clone());
                 let mut dx_sampler: Option<ID3D11SamplerState> = None;
 
                 device.CreateSamplerState(&description, Some(&mut dx_sampler)).unwrap();
@@ -159,7 +159,7 @@ impl GraphicsDevice {
     }
 
     fn apply_depth_stencil_state(&mut self) {
-        let description =  self.depth_stencil_state.to_dx();
+        let description =  D3D11_DEPTH_STENCIL_DESC::from(self.depth_stencil_state);
         let device = self.platform.device.as_ref().unwrap();
         let context = self.platform.context.as_ref().unwrap();
         let mut dx_depth: Option<ID3D11DepthStencilState> = None;
@@ -176,7 +176,7 @@ impl GraphicsDevice {
 
     fn apply_rasterizer_state(&mut self) {
         //Convert
-        let description = self.rasterizer_state.to_dx();
+        let description = D3D11_RASTERIZER_DESC::from(self.rasterizer_state);
         let device = self.platform.device.as_ref().unwrap();
         let context = self.platform.context.as_ref().unwrap();
         let mut dx_rasterizer: Option<ID3D11RasterizerState> = None;
