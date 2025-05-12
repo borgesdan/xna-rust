@@ -9,14 +9,13 @@ pub mod csharp;
 pub mod platform;
 
 pub trait Unbox<T>: Sized {
-    fn unbox(&self) -> Result<T, Exception>;
+    fn unbox(&self) -> Result<T, Exception> where T: Clone;
     fn unbox_ref(&self) -> Result<&T, Exception>;
-
     fn unbox_mut(&mut self) -> Result<&mut T, Exception>;
 }
 
-impl<T> Unbox<T> for Option<T> where T: Clone {
-    fn unbox(&self) -> Result<T, Exception> {
+impl<T> Unbox<T> for Option<T> {
+    fn unbox(&self) -> Result<T, Exception> where T: Clone {
         if self.is_none() {
             return Err(Exception::new("Invalid operation", None));
         }
