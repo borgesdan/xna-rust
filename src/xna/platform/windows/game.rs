@@ -6,7 +6,7 @@ use crate::xna::framework::game::{Game, GameTime, GraphicsDeviceManager};
 use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, DispatchMessageW, GetMessageW, PeekMessageA, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_CLOSE, WM_DESTROY, WM_NCLBUTTONDOWN, WM_QUIT};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
-use crate::xna::UnboxRc;
+use crate::xna::Unbox;
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {

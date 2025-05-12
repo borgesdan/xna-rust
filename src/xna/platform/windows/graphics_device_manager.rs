@@ -8,7 +8,7 @@ use crate::xna::platform::windows::{ WindowsPresentationParameters};
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
-use crate::xna::UnboxRc;
+use crate::xna::Unbox;
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {

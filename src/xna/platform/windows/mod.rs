@@ -5,7 +5,6 @@ pub mod rasterizer_state;
 pub mod sampler_state;
 pub mod swap_chain;
 mod render_target_2d;
-pub mod texture_2d;
 pub mod step_timer;
 pub mod game;
 pub mod game_window;
