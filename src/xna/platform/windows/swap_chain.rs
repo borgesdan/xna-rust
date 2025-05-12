@@ -23,7 +23,7 @@ impl SwapChain {
                 let code = result.0.to_string();
                 let message = result.message();
 
-                let final_message =  "CreateSwapChain failed. - ".to_string() + code.as_str() + message.as_str();
+                let final_message =  "CreateSwapChain failed. - ".to_string() + code.as_str() + " - " + message.as_str();
 
                 return Err(Exception::new(final_message.as_str(), None));
             }
