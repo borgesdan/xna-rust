@@ -203,11 +203,11 @@ impl Game {
             return;
         }
 
-        self.platform.step_timer.set_target_elapsed_ticks(value.ticks as u64);
+        self.platform.step_timer.target_elapsed_ticks = value.ticks as u64;
     }
 
     pub fn set_is_fixed_time_step(&mut self, value: bool) {
         self.is_fixed_time_step = value;
-        self.platform.step_timer.set_fixed_time_step(value);
+        self.platform.step_timer.is_fixed_time_step = value;
     }
 }
