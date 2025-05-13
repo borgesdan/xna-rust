@@ -1,10 +1,12 @@
-use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIOutput, DXGI_ENUM_MODES, DXGI_ENUM_MODES_INTERLACED, DXGI_ENUM_MODES_SCALING, DXGI_ENUM_MODES_STEREO};
-use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC, DXGI_MODE_SCANLINE_ORDER};
+use std::error::Error;
 use crate::xna::csharp::Exception;
-use crate::xna::framework::game::{GraphicsDeviceManager, GraphicsProfile};
+use crate::xna::framework::game::GraphicsDeviceManager;
 use crate::xna::framework::graphics::{DepthFormat, DisplayMode, DisplayModeCollection, DisplayModeScaling, GraphicsAdapter, GraphicsAdapterOutput, ScanlineOrder, SurfaceFormat};
 use crate::xna::framework::Rectangle;
 use crate::xna::platform::windows::WindowsGraphicsAdapterOutput;
+use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC};
+use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIAdapter, IDXGIFactory, IDXGIOutput, DXGI_ENUM_MODES_SCALING};
+use crate::xna::ExceptionConverter;
 
 impl GraphicsAdapter {
     pub fn adapters() -> Result<Vec<GraphicsAdapter>, Exception> {
@@ -12,21 +14,19 @@ impl GraphicsAdapter {
         let mut adapters : Vec<GraphicsAdapter> = Vec::new();
 
         unsafe {
-            let factory = CreateDXGIFactory::<IDXGIFactory>().unwrap();
+            let factory = CreateDXGIFactory::<IDXGIFactory>()
+                .unwrap_or_exception("Failed to create IDXGIFactory")?;
+
             let mut count: u32 = 0;
 
             loop {
-                let result = Self::create(&factory, count.clone());
+                let result = Self::create(&factory, count.clone())?;
 
-                if result.is_err() {
-                    if count > 0 {
-                        break;
-                    } else {
-                        return Err(Exception::new("Cannot find graphics adapters", result.err()));
-                    }
+                if result.is_none() {
+                    break;
                 }
 
-                adapters.push(result?);
+                adapters.push(result.unwrap());
                 count += 1;
             }
         }
@@ -36,15 +36,16 @@ impl GraphicsAdapter {
 
     pub fn default_adapter() -> Result<GraphicsAdapter, Exception> {
         unsafe {
-            let factory = CreateDXGIFactory::<IDXGIFactory>().unwrap();
+            let factory = CreateDXGIFactory::<IDXGIFactory>()
+                .unwrap_or_exception("Failed to create DXGIFactory")?;
 
-            let result = Self::create(&factory, 0);
+            let result = Self::create(&factory, 0)?;
 
-            if result.is_err() {
-                return Err(Exception::new("Cannot find graphics adapters", result.err()));
+            if result.is_none() {
+                return Err(Exception::new("Default adapter not find.", None));
             }
 
-            Ok(result?)
+            Ok(result.unwrap())
         }
     }
 
@@ -63,14 +64,9 @@ impl GraphicsAdapter {
                     break;
                 }
 
-                let output = output.unwrap();
-                let mut description = output.GetDesc();
-
-                if description.is_err() {
-                    return Err(Exception::new("Error getting output description", None));
-                }
-
-                let description = description.unwrap();
+                let output = output?;
+                let mut description = output.GetDesc()
+                    .unwrap_or_exception("Error getting output description")?;
 
                 let device_nam_u16 = String::from_utf16(&description.DeviceName);
 
@@ -89,8 +85,8 @@ impl GraphicsAdapter {
                 let back_buffer_height = GraphicsDeviceManager::DEFAULT_BACK_BUFFER_HEIGHT;
                 let current_display_mode = Self::get_output_current_display_mode(&supported_display_modes, &SurfaceFormat::Color, back_buffer_width, back_buffer_height);
 
-                let mut out_adapter = GraphicsAdapterOutput {
-                    device_name: device_name,
+                let out_adapter = GraphicsAdapterOutput {
+                    device_name,
                     attached_to_desktop: description.AttachedToDesktop.as_bool(),
                     desktop_coordinates: Rectangle {
                         x: description.DesktopCoordinates.left,
@@ -103,7 +99,7 @@ impl GraphicsAdapter {
                     },
                     display_mode_collection: supported_display_modes,
 
-                    current_display_mode: current_display_mode,
+                    current_display_mode,
                 };
 
                 outputs.push(out_adapter);
@@ -121,28 +117,16 @@ impl GraphicsAdapter {
             let mut num_modes = 0;
 
             let list = output.GetDisplayModeList(format, DXGI_ENUM_MODES_SCALING,
-                                                  &mut num_modes, None);
-
-            if list.is_err() {
-                return Err(Exception::new("GetDisplayModeList failed.", None));
-            }
-
-            list.unwrap();
+                                                  &mut num_modes, None).unwrap_or_exception("GetDisplayModeList failed.")?;
 
             let mut display_modes = vec![DXGI_MODE_DESC::default(); num_modes as usize];
 
-            let list = output.GetDisplayModeList(
+            output.GetDisplayModeList(
                 format,
                 DXGI_ENUM_MODES_SCALING,
                 &mut num_modes,
                 Some(display_modes.as_mut_ptr()),
-            );
-
-            if list.is_err() {
-                return Err(Exception::new("GetDisplayModeList failed.", None));
-            }
-
-            list.unwrap();
+            ).unwrap_or_exception("GetDisplayModeList failed.")?;
 
             let mut supported_displays = vec![DisplayMode::default(); num_modes as usize];
 
@@ -189,27 +173,22 @@ impl GraphicsAdapter {
         current_display
     }
 
-    fn create(factory: &IDXGIFactory, index: u32) -> Result<GraphicsAdapter, Exception> {
+    fn create(factory: &IDXGIFactory, index: u32) -> Result<Option<GraphicsAdapter>, Exception> {
         unsafe{
             let adapter = factory.EnumAdapters(index);
 
             if adapter.is_err() {
-                return Err(Exception::new("EnumAdapters failed.", None));
+                return Ok(None);
             }
 
-            let adapter = adapter.unwrap();
-            let description = adapter.GetDesc();
-
-            if description.is_err() {
-                return Err(Exception::new("GetDesc failed.", None));
-            }
-
-            let description = description.unwrap();
+            let adapter = adapter?;
+            let description = adapter.GetDesc()
+                .unwrap_or_exception("GetDesc failed")?;
 
             let mut adp = GraphicsAdapter::default();
             adp.index = index;
             adp.device_id = description.DeviceId;
-            adp.is_default = true;
+            adp.is_default = index == 0;
             adp.revision = description.Revision;
             adp.sub_system_id = description.SubSysId;
             adp.vendor_id = description.VendorId;
@@ -218,12 +197,13 @@ impl GraphicsAdapter {
             adp.platform.adapter = Some(adapter.clone());
 
             let outputs = Self::get_outputs(&adapter)?;
+
             if !outputs.is_empty() {
                 adp.current_output = Some(outputs[0].clone());
                 adp.outputs = outputs;
             }
 
-            Ok(adp)
+            Ok(Some(adp))
         }
     }
 
@@ -249,11 +229,8 @@ impl GraphicsAdapter {
             .as_ref().unwrap();
 
         unsafe {
-            let result = output.FindClosestMatchingMode(&mode_to_match, &mut closest_match, None);
-
-            if result.is_err() {
-                return Err(Exception::new("FindClosestMatching failed.", None));
-            }
+            output.FindClosestMatchingMode(&mode_to_match, &mut closest_match, None)
+                .unwrap_or_exception("FindClosestMatching failed.")?;
         }
 
         selected_format = SurfaceFormat::from(closest_match.Format);
