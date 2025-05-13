@@ -37,7 +37,7 @@ impl GraphicsDevice {
 
     pub fn new_from_profile(adapter: &GraphicsAdapter, profile: &GraphicsProfile, presentation_parameters: &PresentationParameters) -> Self {
         let mut device = Self::new();
-        device.adapter = adapter.clone();
+        device.adapter = Some(adapter.clone());
         device.graphics_profile = profile.clone();
         device.presentation_parameters = presentation_parameters.clone();
 

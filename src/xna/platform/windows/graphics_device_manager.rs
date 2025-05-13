@@ -117,7 +117,7 @@ impl GraphicsDeviceManager{
         game.attach_graphics_device(device.clone());
 
         let mut temp_device = device.borrow_mut();
-        temp_device.initialize()?;
+        temp_device.initialize(None)?;
 
         Ok(())
     }

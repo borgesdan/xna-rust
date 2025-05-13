@@ -398,7 +398,7 @@ pub struct SwapChain {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct GraphicsDevice {
-    pub adapter: GraphicsAdapter,
+    pub adapter: Option<GraphicsAdapter>,
     pub blend_state: BlendState,
     pub depth_stencil_state: DepthStencilState,
     pub rasterizer_state: RasterizerState,
