@@ -7,6 +7,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use windows::Win32::Foundation::{FALSE, HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
+use crate::xna::csharp::forms::Screen;
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
@@ -308,8 +309,8 @@ impl GraphicsDeviceManager{
     }
 
     fn is_window_on_adapter(handle: &HWND, adapter: &GraphicsAdapter) ->Result<bool, Exception> {
-        let from_handle = GameWindow::screen_from_handle(handle)?;
-        let from_adapter = GameWindow::screen_from_adapter(adapter)?;
+        let from_handle = Screen::from_handle(handle)?;
+        let from_adapter = Screen::from_adapter(adapter)?;
 
         Ok(from_handle.is_some() && from_adapter.is_some() && from_handle == from_adapter)
     }

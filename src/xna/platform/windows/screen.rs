@@ -1,9 +1,9 @@
 use crate::xna::csharp::forms::{Screen, SystemInformation};
-use crate::xna::csharp::Rectangle;
+use crate::xna::csharp::{Exception, Rectangle};
 use std::{mem, ptr};
 use windows::core::{BOOL, PCWSTR};
-use windows::Win32::Foundation::{LPARAM, RECT};
-use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, EnumDisplayMonitors, GetDeviceCaps, GetMonitorInfoA, BITSPIXEL, HDC, HMONITOR, MONITORINFO, MONITORINFOEXA, PLANES};
+use windows::Win32::Foundation::{HWND, LPARAM, RECT};
+use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, EnumDisplayMonitors, GetDeviceCaps, GetMonitorInfoA, MonitorFromWindow, BITSPIXEL, HDC, HMONITOR, MONITORINFO, MONITORINFOEXA, MONITOR_DEFAULTTOPRIMARY, PLANES};
 use windows::Win32::UI::WindowsAndMessaging::MONITORINFOF_PRIMARY;
 
 impl Screen {
@@ -76,6 +76,20 @@ impl Screen {
         }
 
         monitors
+    }
+
+    pub fn from_handle(hwnd: &HWND) -> Result<Option<Screen>, Exception> {
+        unsafe {
+            let h_monitor = MonitorFromWindow(*hwnd, MONITOR_DEFAULTTOPRIMARY);
+
+            if h_monitor.is_invalid() {
+                return Err(Exception::new("Get default primary monitor failed.", None));
+            }
+
+            let screen = Screen::new(h_monitor, HDC::default());
+
+            Ok(Some(screen))
+        }
     }
 
     unsafe extern "system" fn enumerate_monitors_callback(h_monitor: HMONITOR, _: HDC, _: *mut RECT, lparam: LPARAM) -> BOOL {
