@@ -1,19 +1,21 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 use crate::xna::csharp::Exception;
 use crate::xna::framework::game::{GameWindow, GraphicsDeviceInformation, GraphicsDeviceManager};
 use crate::xna::framework::graphics::{DisplayMode, GraphicsAdapter, GraphicsDevice, PresentInterval, PresentationParameters};
-use crate::xna::platform::windows::{ WindowsPresentationParameters};
-use windows::core::BOOL;
-use windows::Win32::Foundation::{HWND, RECT};
+use crate::xna::platform::windows::WindowsPresentationParameters;
+use crate::xna::{ExceptionConverter, SilentExceptionConverter};
+use std::cell::RefCell;
+use std::rc::Rc;
+use windows::Win32::Foundation::{FALSE, HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
-use crate::xna::SilentExceptionConverter;
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
         if self.graphics_device.is_some() && !self.is_device_dirty {
             return Ok(())
+        }
+
+        if self.game.is_none() {
+            return Err(Exception::new("Game is not defined.", None));
         }
 
         self.change_device(false)
@@ -22,23 +24,15 @@ impl GraphicsDeviceManager{
     pub fn toggle_full_screen(&mut self) -> Result<(), Exception> {
         let temp_device = self.graphics_device.unwrap_ref_or_default_exception()?;
         let mut device = temp_device.borrow_mut();
-        let mut swap_chain = device.platform.swap_chain.as_mut().unwrap();
+        let mut swap_chain = device.platform.swap_chain.unwrap_mut_or_default_exception()?;
 
-        let mut state = BOOL(0);
+        let mut state = FALSE;
         unsafe {
-            let mut result = swap_chain.GetFullscreenState(Some(&mut state), None);
+            swap_chain.GetFullscreenState(Some(&mut state), None)
+                .unwrap_or_exception("Toggle full screen fail")?;
 
-            if result.is_err() {
-                let error = Exception::from(result.err().unwrap());
-                return Err(Exception::new("Toggle full screen fail", Some(error)));
-            }
-
-            result = swap_chain.SetFullscreenState(!state.as_bool(), None);
-
-            if result.is_err() {
-                let error = Exception::from(result.err().unwrap());
-                return Err(Exception::new("Toggle full screen failt", Some(error)));
-            }
+            swap_chain.SetFullscreenState(!state.as_bool(), None)
+                .unwrap_or_exception("Toggle full screen fail")?;
         }
 
         self.is_full_screen = !state.as_bool();
@@ -47,10 +41,6 @@ impl GraphicsDeviceManager{
     }
 
     fn change_device(&mut self, force_create: bool) -> Result<(), Exception> {
-        if self.game.is_none() {
-            return Err(Exception::new("Game is not defined.", None));
-        }
-
         self.in_device_transition = true;
 
         let mut best_device = self.find_best_platform_device(force_create)?;
@@ -60,11 +50,11 @@ impl GraphicsDeviceManager{
             let can_reset = self.can_reset_device(&best_device)?;
 
             if can_reset {
-                let mut pp = best_device.presentation_parameters.clone();
-                self.message_present_parameters(&mut pp)?;
+                self.message_present_parameters(&mut best_device.presentation_parameters)?;
                 Self::validate_graphics_device_information(&best_device)?;
 
-                let temp_device = self.graphics_device.unwrap_ref_or_default_exception()?;
+                let temp_device = self.graphics_device
+                    .unwrap_ref_or_default_exception()?;
                 let mut device = temp_device.borrow_mut();
                 device.reset(&best_device.presentation_parameters, &best_device.adapter)?;
 
@@ -99,10 +89,6 @@ impl GraphicsDeviceManager{
         }
 
         Self::rank_devices_platform(&mut found_devices);
-
-        if found_devices.len() == 0 {
-            return Err(Exception::new("No devices found.", None));
-        }
 
         Ok(found_devices[0].clone())
     }
