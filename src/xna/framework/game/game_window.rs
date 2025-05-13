@@ -34,9 +34,6 @@ impl GameWindow {
             let device_name = &screen.device_name;
             let adp_device_name = &adapter.current_output.as_ref().unwrap().device_name;
 
-            println!("Device name: {}", device_name);
-            println!("Adapter Device name: {}", adp_device_name);
-
             if adp_device_name == device_name {
                 return Ok(Some(screen.clone()));
             }

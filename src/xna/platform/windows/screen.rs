@@ -1,12 +1,13 @@
 use crate::xna::csharp::forms::{Screen, SystemInformation};
 use crate::xna::csharp::Rectangle;
 use std::{mem, ptr};
-use windows::core::PCWSTR;
-use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, GetDeviceCaps, GetMonitorInfoA, BITSPIXEL, HDC, HMONITOR, MONITORINFO, MONITORINFOEXA, PLANES};
+use windows::core::{BOOL, PCWSTR};
+use windows::Win32::Foundation::{LPARAM, RECT};
+use windows::Win32::Graphics::Gdi::{CreateDCW, DeleteDC, EnumDisplayMonitors, GetDeviceCaps, GetMonitorInfoA, BITSPIXEL, HDC, HMONITOR, MONITORINFO, MONITORINFOEXA, PLANES};
 use windows::Win32::UI::WindowsAndMessaging::MONITORINFOF_PRIMARY;
 
 impl Screen {
-    pub fn from_monitor(hmonitor: HMONITOR, hdc: HDC) -> Self {
+    pub fn new(hmonitor: HMONITOR, hdc: HDC) -> Self {
         let mut screen_dc = hdc.clone();
         let mut screen = Screen::default();
         let primary_monitor = SystemInformation::primary_monitor();
@@ -60,13 +61,30 @@ impl Screen {
     }
 
     pub fn all_screens() -> Vec<Self> {
-        //TODO: get all screens
-        let primary_monitor = SystemInformation::primary_monitor();
-        let primary_screen = Screen::from_monitor(primary_monitor, HDC::default());
-        let mut screens = Vec::<Screen>::new();
-        screens.push(primary_screen);
+        let mut monitors: Vec<Screen> = Vec::new();
+        let monitors_ptr = &mut monitors as *mut _;
 
-        screens
+        if SystemInformation::multi_monitor_support() {
+            unsafe {
+                _ = EnumDisplayMonitors(None, None, Some(Self::enumerate_monitors_callback), LPARAM(monitors_ptr as isize));
+            }
+        } else {
+            let primary = SystemInformation::primary_monitor();
+            let screen = Screen::new(primary, HDC::default());
+
+            monitors.push(screen);
+        }
+
+        monitors
+    }
+
+    unsafe extern "system" fn enumerate_monitors_callback(h_monitor: HMONITOR, _: HDC, _: *mut RECT, lparam: LPARAM) -> BOOL {
+        let monitors = &mut *(lparam.0 as *mut Vec<Screen>);
+        let screen = Screen::new(h_monitor, HDC::default());
+
+        monitors.push(screen);
+
+        BOOL(1)
     }
 
     fn get_monitor_info(monitor: &HMONITOR) -> MONITORINFOEXA {

@@ -29,7 +29,7 @@ impl GameWindow {
                 return Ok(None);
             }
 
-            let screen = Screen::from_monitor(h_monitor, HDC::default());
+            let screen = Screen::new(h_monitor, HDC::default());
 
             Ok(Some(screen))
         }
