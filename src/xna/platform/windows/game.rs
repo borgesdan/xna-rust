@@ -1,16 +1,15 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 use crate::xna::csharp::{Exception, TimeSpan};
-use crate::xna::framework::game::{Game, GameTime, GraphicsDeviceManager};
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, DispatchMessageW, GetMessageW, PeekMessageA, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_CLOSE, WM_DESTROY, WM_NCLBUTTONDOWN, WM_QUIT};
+use crate::xna::framework::game::{Game, GameTime};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
-use crate::xna::Unbox;
+use std::cell::RefCell;
+use std::rc::Rc;
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG, WM_QUIT};
+use crate::xna::{ExceptionConverter, SilentExceptionConverter};
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {
-        let mut gw = self.game_window.unbox()?;
+        let mut gw = self.game_window.unwrap_ref_or_default_exception()?;
         gw.borrow_mut().close()
     }
 
@@ -20,7 +19,7 @@ impl Game {
         let mut msg = MSG::default();
 
         loop {
-            let gw_temp = self.game_window.unbox()?;
+            let gw_temp = self.game_window.unwrap_ref_or_default_exception()?.clone();
             let game_window = gw_temp.borrow();
 
             unsafe {
@@ -79,7 +78,7 @@ impl Game {
             return Ok(());
         }
 
-        let mut game_window = self.game_window.unbox()?;
+        let mut game_window = self.game_window.unwrap_ref_or_default_exception()?;
         game_window.borrow_mut().create()?;
 
         self.is_window_created = true;
@@ -147,7 +146,7 @@ impl Game {
         }
 
         self.graphics_device
-            .unbox()?
+            .unwrap_ref_or_default_exception()?
             .borrow()
             .present();
 
@@ -171,7 +170,7 @@ impl Game {
     }
 
     pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), Exception> {
-        let gw_temp = self.game_window.unbox()?;
+        let gw_temp = self.game_window.unwrap_ref_or_default_exception()?;
         let mut game_window = gw_temp.borrow_mut();
 
         let windows_bounds = game_window.client_bounds();

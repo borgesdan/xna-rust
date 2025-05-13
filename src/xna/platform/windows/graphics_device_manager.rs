@@ -8,7 +8,7 @@ use crate::xna::platform::windows::{ WindowsPresentationParameters};
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
-use crate::xna::Unbox;
+use crate::xna::SilentExceptionConverter;
 
 impl GraphicsDeviceManager{
     pub fn apply_changes(&mut self) -> Result<(), Exception> {
@@ -20,7 +20,7 @@ impl GraphicsDeviceManager{
     }
 
     pub fn toggle_full_screen(&mut self) -> Result<(), Exception> {
-        let temp_device = self.graphics_device.unbox()?;
+        let temp_device = self.graphics_device.unwrap_ref_or_default_exception()?;
         let mut device = temp_device.borrow_mut();
         let mut swap_chain = device.platform.swap_chain.as_mut().unwrap();
 
@@ -64,7 +64,7 @@ impl GraphicsDeviceManager{
                 self.message_present_parameters(&mut pp)?;
                 Self::validate_graphics_device_information(&best_device)?;
 
-                let temp_device = self.graphics_device.unbox()?;
+                let temp_device = self.graphics_device.unwrap_ref_or_default_exception()?;
                 let mut device = temp_device.borrow_mut();
                 device.reset(&best_device.presentation_parameters, &best_device.adapter)?;
 
@@ -121,7 +121,7 @@ impl GraphicsDeviceManager{
         let width = new_info.presentation_parameters.back_buffer_width;
         let height = new_info.presentation_parameters.back_buffer_height;
 
-        let temp_game = self.game.unbox()?;
+        let temp_game = self.game.unwrap_ref_or_default_exception()?;
         let mut game = temp_game.borrow_mut();
 
         game.resize_window(width, height)?;
@@ -138,9 +138,9 @@ impl GraphicsDeviceManager{
 
     fn add_devices(&self, any_suitable_device: bool, found_devices: &mut Vec<GraphicsDeviceInformation>)
     -> Result<(), Exception> {
-        let temp_game = self.game.unbox()?;
+        let temp_game = self.game.unwrap_ref_or_default_exception()?;
         let game = temp_game.borrow();
-        let temp_game_window = game.game_window.unbox()?;
+        let temp_game_window = game.game_window.unwrap_ref_or_default_exception()?;
         let game_window = temp_game_window.borrow();
 
         let handle = game_window.platform.hwnd;
@@ -227,7 +227,7 @@ impl GraphicsDeviceManager{
 
     fn can_reset_device(&self, new_device_info: &GraphicsDeviceInformation) -> Result<bool, Exception> {
         let profile = self.graphics_device
-            .unbox()?
+            .unwrap_ref_or_default_exception()?
             .borrow()
             .graphics_profile
             .clone();
@@ -249,10 +249,10 @@ impl GraphicsDeviceManager{
             }
 
             let hwnd = self.game
-                .unbox()?
+                .unwrap_ref_or_default_exception()?
                 .borrow()
                 .game_window
-                .unbox()?
+                .unwrap_ref_or_default_exception()?
                 .borrow()
                 .platform.hwnd
                 .clone();

@@ -1,7 +1,7 @@
 use crate::xna::framework::graphics::{GraphicsDevice, SwapChain};
 use windows::Win32::Graphics::Dxgi::{IDXGISwapChain, DXGI_SWAP_CHAIN_DESC};
 use crate::xna::csharp::Exception;
-use crate::xna::Unbox;
+use crate::xna::{SilentExceptionConverter};
 
 impl SwapChain {
     pub fn initialize(&self, device: &GraphicsDevice) -> Result<Option<IDXGISwapChain>, Exception> {
@@ -12,8 +12,8 @@ impl SwapChain {
             return Err(Exception::argument_exception("The device.presentation_parameters.platform.hwnd is invalid.", None));
         }
 
-        let factory = device.platform.factory.unbox_ref()?;
-        let i_device = device.platform.device.unbox_ref()?;
+        let factory = device.platform.factory.unwrap_ref_or_default_exception()?;
+        let i_device = device.platform.device.unwrap_ref_or_default_exception()?;
         let mut swap_chain: Option<IDXGISwapChain> = None;
 
         unsafe{

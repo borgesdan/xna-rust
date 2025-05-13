@@ -25,10 +25,6 @@ pub struct Exception {
     pub h_result: isize,
 }
 
-pub trait ExceptionConverter<T> {
-    fn unwrap_or_exception(self, message: &str) -> Result<T, Exception>;
-}
-
 impl Exception {
     pub fn new(message: &str, inner: Option<Exception>) -> Self {
         Self::create(message, 0x80131500, inner)

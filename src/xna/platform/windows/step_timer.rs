@@ -1,5 +1,6 @@
 use windows::Win32::System::Performance::{QueryPerformanceCounter, QueryPerformanceFrequency};
-use crate::xna::csharp::{Exception, ExceptionConverter};
+use crate::xna::csharp::{Exception};
+use crate::xna::ExceptionConverter;
 use crate::xna::platform::windows::StepTimer;
 
 impl StepTimer {
