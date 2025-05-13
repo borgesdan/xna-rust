@@ -2,10 +2,10 @@ use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::game::{Game, GameTime};
 use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
+use crate::xna::SilentExceptionConverter;
 use std::cell::RefCell;
 use std::rc::Rc;
 use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG, WM_QUIT};
-use crate::xna::{ExceptionConverter, SilentExceptionConverter};
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {
@@ -148,7 +148,7 @@ impl Game {
         self.graphics_device
             .unwrap_ref_or_default_exception()?
             .borrow()
-            .present();
+            .present()?;
 
         Ok(())
     }
