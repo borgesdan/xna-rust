@@ -2,7 +2,6 @@ pub mod depth_stencil_state;
 pub mod graphics_device;
 pub mod blend_state;
 pub mod rasterizer_state;
-pub mod sampler_state;
 pub mod swap_chain;
 mod render_target_2d;
 pub mod step_timer;
@@ -23,10 +22,10 @@ use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_R8G8B8A8_U
 use windows::Win32::Graphics::Dxgi::{IDXGIAdapter, IDXGIFactory, IDXGIOutput, IDXGISwapChain, DXGI_SWAP_CHAIN_DESC, DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING, DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY, DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT, DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE, DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED, DXGI_SWAP_CHAIN_FLAG_NONPREROTATED, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS, DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER, DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO, DXGI_SWAP_EFFECT, DXGI_SWAP_EFFECT_DISCARD, DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL, DXGI_SWAP_EFFECT_SEQUENTIAL, DXGI_USAGE, DXGI_USAGE_BACK_BUFFER, DXGI_USAGE_DISCARD_ON_PRESENT, DXGI_USAGE_READ_ONLY, DXGI_USAGE_RENDER_TARGET_OUTPUT, DXGI_USAGE_SHADER_INPUT, DXGI_USAGE_SHARED, DXGI_USAGE_UNORDERED_ACCESS};
 use windows::Win32::Graphics::Gdi::HMONITOR;
 
-impl ExceptionConverter for Result<(), Error> {
-    fn unwrap_or_exception(&self, message: &str) -> Result<(), Exception> {
+impl<T> ExceptionConverter<T> for Result<T, Error> {
+    fn unwrap_or_exception(self, message: &str) -> Result<T, Exception> {
         if self.is_ok() {
-            return Ok(());
+            return Ok(self.unwrap());
         }
 
         let error = self.as_ref().err().unwrap();

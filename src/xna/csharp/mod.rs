@@ -25,8 +25,8 @@ pub struct Exception {
     pub h_result: isize,
 }
 
-pub trait ExceptionConverter {
-    fn unwrap_or_exception(&self, message: &str) -> Result<(), Exception>;
+pub trait ExceptionConverter<T> {
+    fn unwrap_or_exception(self, message: &str) -> Result<T, Exception>;
 }
 
 impl Exception {

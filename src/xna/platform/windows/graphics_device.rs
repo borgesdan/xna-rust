@@ -1,10 +1,11 @@
 use crate::xna::csharp::Exception;
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters};
+use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters, RenderTarget2D};
 use crate::xna::framework::Color;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Graphics::Direct3D::{D3D_DRIVER_TYPE_HARDWARE, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_9_1, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_3};
 use windows::Win32::Graphics::Direct3D11::{D3D11CreateDevice, ID3D11BlendState, ID3D11DepthStencilState, ID3D11Device, ID3D11DeviceContext, ID3D11RasterizerState, ID3D11SamplerState, D3D11_BLEND_DESC, D3D11_CREATE_DEVICE_DEBUG, D3D11_DEPTH_STENCIL_DESC, D3D11_RASTERIZER_DESC, D3D11_SAMPLER_DESC, D3D11_SDK_VERSION, D3D11_VIEWPORT};
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory, IDXGIFactory, DXGI_MWA_FLAGS, DXGI_PRESENT};
+use crate::xna::framework::graphics::SurfaceUsage::RenderTargetOutput;
 use crate::xna::platform::windows::WindowsGraphicsDevice;
 
 impl GraphicsDevice {
@@ -97,7 +98,7 @@ impl GraphicsDevice {
             self.platform.swap_chain = swap_chain;
 
             //Render Target
-            let mut render_target = self.render_target.from_back_buffer(self);
+            let mut render_target = RenderTarget2D::from_back_buffer(self)?;
             render_target.initialize(self);
 
             let render_views = [render_target.platform.view.clone()];
