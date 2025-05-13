@@ -193,7 +193,7 @@ impl GraphicsDevice {
     }
 
     fn apply_blend_state(&mut self) {
-        let description = self.blend_state.to_dx();
+        let description = D3D11_BLEND_DESC::from(self.blend_state);
         let device = self.platform.device.as_ref().unwrap();
         let context = self.platform.context.as_ref().unwrap();
         let mut dx_blend_state: Option<ID3D11BlendState> = None;
