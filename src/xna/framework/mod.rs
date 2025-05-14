@@ -4,6 +4,7 @@ pub mod color;
 pub mod vector;
 pub mod point;
 mod rectangle;
+pub mod content;
 
 #[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Point {
