@@ -1,4 +1,4 @@
-mod stream;
+pub mod stream;
 
 use crate::xna::csharp::Exception;
 
