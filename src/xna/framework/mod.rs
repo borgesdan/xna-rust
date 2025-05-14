@@ -2,14 +2,16 @@ pub mod game;
 pub mod graphics;
 pub mod color;
 pub mod vector;
+pub mod point;
+mod rectangle;
 
-#[derive(Default)]
+#[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
 }
 
-#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Rectangle {
     pub x: i32,
     pub y: i32,
@@ -17,20 +19,20 @@ pub struct Rectangle {
     pub height: i32,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct Vector2 {
     pub x: f32,
     pub y: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct Vector3 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct Vector4 {
     pub x: f32,
     pub y: f32,
@@ -38,7 +40,7 @@ pub struct Vector4 {
     pub w: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -46,12 +48,12 @@ pub struct Quaternion {
     pub w: f32,
 }
 
-#[derive(Default, Eq, PartialEq, Copy, Clone)]
+#[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Color {
     pub packed_value: u32,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct Matrix {
     pub m11: f32,
     pub m12: f32,
@@ -71,122 +73,30 @@ pub struct Matrix {
     pub m44: f32,
 }
 
-impl Point {
-    pub fn new(x: i32, y: i32) -> Point {
-        Point { x, y }
-    }
-
-    pub fn zero() -> Point {
-        Point { x: 0, y: 0 }
-    }
-
-    pub fn equals(p1: &Point, p2: &Point) -> bool {
-        p1.x == p2.x && p1.y == p2.y
-    }
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
+pub struct Ray {
+    pub position: Vector3,
+    pub direction: Vector3,
 }
 
-impl Rectangle {
-    pub fn new(x: i32, y: i32, width: i32, height: i32) -> Rectangle {
-        Rectangle {
-            x,
-            y,
-            width,
-            height,
-        }
-    }
-
-    pub fn left(&self) -> i32 {
-        return self.x;
-    }
-
-    pub fn right(&self) -> i32 {
-        return self.x + self.width;
-    }
-
-    pub fn top(&self) -> i32 {
-        return self.y;
-    }
-
-    pub fn bottom(&self) -> i32 {
-        return self.y + self.height;
-    }
-
-    pub fn location(&self) -> Point {
-        Point { x: self.x, y: self.y }
-    }
-
-    pub fn center(&self) -> Point {
-        Point { x: self.x + self.width / 2, y: self.y + self.height / 2 }
-    }
-
-    pub fn empty(&self) -> bool {
-        self.x == 0 && self.y == 0 && self.width == 0 && self.height == 0
-    }
-
-    pub fn offset(&mut self, x: i32, y: i32) {
-        self.x += x;
-        self.y += y;
-    }
-
-    pub fn inflate(&mut self, horizontal_amount: i32, vertical_amount: i32) {
-        self.x -= horizontal_amount;
-        self.y -= vertical_amount;
-        self.width += horizontal_amount * 2;
-        self.height += vertical_amount * 2;
-    }
-
-    pub fn contains(&self, x: i32, y: i32) -> bool {
-        self.x <= x && x < self.x + self.width
-            && self.y <= y && y < self.y + self.height
-    }
-
-    pub fn contains_rectangle(&self, value: &Rectangle) -> bool {
-        self.x <= value.x && value.x + value.width <= self.x + self.width
-            && self.y <= value.y && value.y + value.height <= self.y + self.height
-    }
-
-    pub fn intersects(&self, value: &Rectangle) -> bool {
-        value.x < self.x + self.width && self.x < value.x + value.width
-            && value.y < self.y + self.height && self.y < value.y + value.height
-    }
-
-    pub fn intersect(value1: &Rectangle, value2: &Rectangle) -> Rectangle {
-        let num1 = value1.x + value1.width;
-        let num2 = value2.x + value2.width;
-        let num3 = value1.y + value1.height;
-        let num4 = value2.y + value2.height;
-        let num5 = if value1.x > value2.x { value1.x } else { value2.x };
-        let num6 = if value1.y > value2.y { value1.y } else { value2.y };
-        let num7 = if num1 < num2 { num1 } else { num2 };
-        let num8 = if num3 < num4 { num3 } else { num4 };
-
-        if num7 > num5 && num8 > num6
-        {
-            return Rectangle::new(num5, num6, num7 - num5, num8 - num6);
-        }
-
-        return Self::new(0, 0, 0, 0);
-    }
-
-    pub fn union(value1: &Rectangle, value2: &Rectangle) -> Rectangle {
-        let num1 = value1.x + value1.width;
-        let num2 = value2.x + value2.width;
-        let num3 = value1.y + value1.height;
-        let num4 = value2.y + value2.height;
-        let num5 = if value1.x < value2.x { value1.x } else { value2.x };
-        let num6 = if value1.y < value2.y { value1.y } else { value2.y };
-        let num7 = if num1 > num2 { num1 } else { num2 };
-        let num8 = if num3 > num4 { num3 } else { num4 };
-
-        return Self::new(num5, num6, num7, num8 - num6);
-    }
-
-    pub fn equals(&self, other: &Rectangle) -> bool {
-        self.x == other.x && self.y == other.y
-        && self.width == other.width && self.height == other.height
-    }
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
+pub struct Plane {
+    pub normal: Vector3,
+    pub d: f32,
 }
 
-pub trait AsBase<TBase> {
-    fn as_base(&self) -> TBase;
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
+pub struct BoundingSphere {
+    pub center: Vector3,
+    pub radius: f32,
+}
+
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
+pub struct BoundingBox {
+    pub min: Vector3,
+    pub max: Vector3,
+}
+
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
+pub struct BoundingFrustum {
 }
