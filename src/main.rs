@@ -34,6 +34,7 @@ fn main() {
 fn create_window(game: Rc<RefCell<Game>>) {
     let mut borrow = game.borrow_mut();
     let result = borrow.create_window();
+    drop(borrow);
 
     if result.is_err() {
         let error = result.err().unwrap();
@@ -45,6 +46,7 @@ fn create_window(game: Rc<RefCell<Game>>) {
 fn apply_graphics_device_manager(graphics_device_manager: Rc<RefCell<GraphicsDeviceManager>>) {
     let mut device_borrow = graphics_device_manager.borrow_mut();
     let result = device_borrow.apply_changes();
+    drop(device_borrow);
 
     if result.is_err() {
         let error = result.err().unwrap();
