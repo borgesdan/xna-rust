@@ -21,12 +21,6 @@ pub enum DisplayOrientation {
     Portrait,
 }
 
-#[derive(Error, Debug, Default)]
-#[error("{message}")]
-pub struct GameWindowError {
-    pub message: String,
-    pub inner_error: String
-}
 
 #[derive(Default, PartialEq, Eq, Copy, Clone)]
 pub enum GameWindowStyle {
@@ -56,6 +50,17 @@ pub struct GameTime {
     pub total_time: TimeSpan,
 }
 
+pub trait GameHandler {
+    fn on_begin_run(&mut self) -> Result<(), Exception>;
+    fn on_end_run(&mut self) -> Result<(), Exception>;
+    fn on_update(&mut self, game_time: &GameTime) -> Result<(), Exception>;
+    fn on_draw(&mut self, game_time: &GameTime) -> Result<(), Exception>;
+    fn on_begin_draw(&mut self) -> Result<(), Exception>;
+    fn on_end_draw(&mut self) -> Result<(), Exception>;
+    fn on_initialize(&mut self) -> Result<(), Exception>;
+    fn on_load_content(&mut self) -> Result<(), Exception>;
+}
+
 #[derive(Default, Clone)]
 pub struct Game {
     pub game_window: Option<Rc<RefCell<GameWindow>>>,
@@ -64,14 +69,7 @@ pub struct Game {
     pub current_game_time: GameTime,
     pub is_fixed_time_step: bool,
 
-    pub begin_run_fn: Option<fn() ->Result<(), Exception>>,
-    pub update_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub draw_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub begin_fn: Option<fn() ->Result<(), Exception>>,
-    pub end_fn: Option<fn() ->Result<(), Exception>>,
-    pub end_run_fn: Option<fn() ->Result<(), Exception>>,
-    pub initialize_fn: Option<fn() ->Result<(), Exception>>,
-    pub load_content_fn: Option<fn() ->Result<(), Exception>>,
+    pub handler: Option<Rc<RefCell<dyn GameHandler>>>,
 
     pub is_window_created: bool,
 
@@ -93,6 +91,8 @@ pub struct GraphicsDeviceManager {
     pub use_resized_back_buffer: bool,
     pub resized_back_buffer_width: u32,
     pub resized_back_buffer_height: u32,
+    pub back_buffer_width: u32,
+    pub back_buffer_height: u32,
     pub depth_stencil_format: DepthFormat,
     pub allow_multi_sampling: bool,
     pub back_buffer_format: SurfaceFormat,

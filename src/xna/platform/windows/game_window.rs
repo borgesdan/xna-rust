@@ -120,10 +120,6 @@ impl GameWindow {
     pub extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
         unsafe {
             match msg {
-                WM_PAINT => {
-                    // Aqui poderia ser feito o desenho da janela, se necessário
-                    LRESULT(0)
-                }
                 WM_DESTROY => {
                     PostQuitMessage(0);
                     LRESULT(0)

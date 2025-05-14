@@ -1,3 +1,4 @@
+use windows::core::Interface;
 use crate::xna::csharp::Exception;
 use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, IPackedVector, PresentInterval, PresentationParameters, RenderTarget2D};
 use crate::xna::framework::Color;
@@ -120,7 +121,7 @@ impl GraphicsDevice {
                 .Present(vsync, DXGI_PRESENT::default())
                 .unwrap();
 
-            let view = self.render_target.platform.view
+            let view = self.platform.render_target
                 .unwrap_ref_or_default_exception()?
                 .clone();
 
@@ -134,17 +135,17 @@ impl GraphicsDevice {
         }
     }
 
-    pub fn clear(&self, color: &Color) -> Result<(), Exception> {
+    pub fn clear(&self, color: Color) -> Result<(), Exception> {
         let rgba = color.to_vector4();
 
         let background = [rgba.x, rgba.y, rgba.z, rgba.w];
 
         let render_target_view = self.platform.render_target
-            .unwrap_ref_or_default_exception()?;
+            .unwrap_ref_or_default_exception()?.clone();
 
         unsafe {
             self.platform.context.unwrap_ref_or_default_exception()?
-                .ClearRenderTargetView(render_target_view, &background);
+                .ClearRenderTargetView(&render_target_view, &background);
         }
 
         Ok(())

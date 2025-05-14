@@ -4,8 +4,9 @@ use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
 use crate::xna::SilentExceptionConverter;
 use std::cell::RefCell;
+use std::ops::Deref;
 use std::rc::Rc;
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, TranslateMessage, MSG, WM_QUIT};
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {
@@ -13,35 +14,41 @@ impl Game {
         gw.borrow_mut().close()
     }
 
-    fn start_game_loop(&mut self) -> Result<usize, Exception> {
+    fn start_game_loop(&mut self) -> Result<(), Exception> {
         self.platform.step_timer = StepTimer::new();
 
         let mut msg = MSG::default();
+        let gw_temp = self.game_window.unwrap_ref_or_default_exception()?.clone();
+        let game_window = gw_temp.borrow();
 
         loop {
-            let gw_temp = self.game_window.unwrap_ref_or_default_exception()?.clone();
-            let game_window = gw_temp.borrow();
-
             unsafe {
-                if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).into() {
+                // if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).as_bool(){
+                //     let _ = TranslateMessage(&msg);
+                //     let _ = DispatchMessageW(&msg);
+                //
+                //     //TODO: por algum motivo WM_QUIT não é enviado após a janela ser fechada.
+                //     if msg.message == WM_QUIT || msg.message == 0 {
+                //         break;
+                //     }
+                // } else {
+                //     self.tick()?;
+                // }
+
+                if PeekMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
                     let _ = TranslateMessage(&msg);
                     let _ = DispatchMessageW(&msg);
-
-                    //TODO: por algum motivo WM_QUIT não é enviado após a janela ser fechada.
-                    if msg.message == WM_QUIT || msg.message == 0 {
-                        break;
-                    }
                 } else {
-                    self.tick()?;
+                    self.tick()?
+                }
+
+                if msg.message == WM_QUIT || msg.message == 0 {
+                    break;
                 }
             }
         }
 
-        if self.end_run_fn.is_some() {
-            self.end_run_fn.unwrap()()?;
-        }
-
-        Ok(msg.wParam.0)
+        Ok(())
     }
 
     fn tick(&mut self) -> Result<(), Exception> {
@@ -86,9 +93,9 @@ impl Game {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<usize, Exception> {
+    pub fn run(&mut self) -> Result<(), Exception> {
         if self.platform.is_running {
-            return Ok(1);
+            return Ok(());
         }
 
         if !self.is_window_created {
@@ -98,47 +105,55 @@ impl Game {
         self.initialize()?;
 
         self.platform.is_running = true;
-        self.begin_run()?;
+
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_begin_run()?;
+        }
+
         self.start_game_loop()?;
 
-        Ok(0)
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_end_run()?;
+        }
+
+        Ok(())
     }
 
     fn initialize(&mut self) -> Result<(), Exception> {
-        if self.initialize_fn.is_some() {
-            self.initialize_fn.as_ref().unwrap()()?;
+        if self.handler.is_some() {
+            self.handler.clone().as_mut().unwrap().borrow_mut().on_initialize()?;
         }
 
         self.load_content()
     }
 
     fn load_content(&mut self) -> Result<(), Exception> {
-        if self.load_content_fn.is_some() {
-            self.load_content_fn.as_ref().unwrap()()?;
+        if self.handler.is_some() {
+            self.handler.clone().unwrap().borrow_mut().on_load_content()?;
         }
 
         Ok(())
     }
 
     fn update(&mut self, game_time: &GameTime) -> Result<(), Exception> {
-        if self.update_fn.is_some() {
-            self.update_fn.unwrap()(game_time)?
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_update(game_time)?;
         }
 
         Ok(())
     }
 
     fn begin_draw(&self) -> Result<(), Exception> {
-        if self.begin_fn.is_some() {
-            self.begin_fn.unwrap()()?
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_begin_draw()?;
         }
 
         Ok(())
     }
 
     fn draw(&mut self, game_time: &GameTime) -> Result<(), Exception> {
-        if self.draw_fn.is_some() {
-            self.draw_fn.unwrap()(game_time)?
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_draw(game_time)?;
         }
 
         if self.graphics_device.is_none() {
@@ -154,17 +169,10 @@ impl Game {
     }
 
     fn end_draw(&mut self) -> Result<(), Exception> {
-        if self.end_fn.is_some() {
-            self.end_fn.unwrap()()?
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_end_draw()?;
         }
 
-        Ok(())
-    }
-
-    fn begin_run(&mut self) -> Result<(), Exception> {
-        if self.begin_run_fn.is_some() {
-            self.begin_run_fn.unwrap()()?
-        }
 
         Ok(())
     }
@@ -209,4 +217,5 @@ impl Game {
         self.is_fixed_time_step = value;
         self.platform.step_timer.is_fixed_time_step = value;
     }
+
 }

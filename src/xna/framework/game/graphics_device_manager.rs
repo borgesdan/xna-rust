@@ -1,9 +1,7 @@
+use crate::xna::framework::game::{Game, GraphicsDeviceManager, GraphicsProfile};
+use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, PresentationParameters, SurfaceFormat};
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use crate::xna::csharp::Exception;
-use crate::xna::framework::game::{Game, GraphicsDeviceManager, GraphicsProfile};
-use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
 
 impl GraphicsDeviceManager {
     pub const DEFAULT_BACK_BUFFER_WIDTH: u32 = 800;
@@ -36,6 +34,8 @@ impl GraphicsDeviceManager {
             in_device_transition: false,
             graphics_adapter: Some(Rc::new(RefCell::new(adapter))),
             presentation_parameters: parameters,
+            back_buffer_width: Self::DEFAULT_BACK_BUFFER_WIDTH,
+            back_buffer_height: Self::DEFAULT_BACK_BUFFER_HEIGHT,
             ..Default::default()
         }
 

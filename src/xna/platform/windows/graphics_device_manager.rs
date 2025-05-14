@@ -126,7 +126,7 @@ impl GraphicsDeviceManager{
     fn add_devices(&self, any_suitable_device: bool, found_devices: &mut Vec<GraphicsDeviceInformation>)
     -> Result<(), Exception> {
         let temp_game = self.game.unwrap_ref_or_default_exception()?;
-        let game = temp_game.borrow();
+        let game = temp_game.borrow_mut();
         let temp_game_window = game.game_window.unwrap_ref_or_default_exception()?;
         let game_window = temp_game_window.borrow();
 
@@ -192,8 +192,8 @@ impl GraphicsDeviceManager{
             device_information.presentation_parameters.back_buffer_width = self.resized_back_buffer_width;
             device_information.presentation_parameters.back_buffer_height = self.resized_back_buffer_height;
         } else {
-            device_information.presentation_parameters.back_buffer_width = self.resized_back_buffer_width;
-            device_information.presentation_parameters.back_buffer_height = self.resized_back_buffer_height;
+            device_information.presentation_parameters.back_buffer_width = self.back_buffer_width;
+            device_information.presentation_parameters.back_buffer_height = self.back_buffer_height;
         }
 
         let query = base_device_info.adapter.query_back_buffer_format(
