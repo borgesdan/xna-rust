@@ -1,3 +1,5 @@
+extern crate core;
+
 mod xna;
 
 use std::cell::{RefCell, RefMut};

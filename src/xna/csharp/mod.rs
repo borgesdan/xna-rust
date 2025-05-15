@@ -1,6 +1,8 @@
 pub mod forms;
 pub mod time_span;
-mod io;
+pub mod io;
+pub mod buffer;
+pub mod array;
 
 use std::str;
 use thiserror::Error;
@@ -25,6 +27,9 @@ pub struct Exception {
     pub inner: Option<Box<Exception>>,
     pub h_result: isize,
 }
+
+pub struct Buffer;
+pub struct Array;
 
 impl Exception {
     pub fn new(message: &str, inner: Option<Exception>) -> Self {
