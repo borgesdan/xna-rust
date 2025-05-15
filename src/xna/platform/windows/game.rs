@@ -1,55 +1,50 @@
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageA, PeekMessageA, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::game::{Game, GameTime};
-use crate::xna::platform::windows::game_window::WindowsGameWindow;
+use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
-
-#[derive(Default, PartialEq, Clone)]
-pub struct WindowsGame {
-    pub is_running: bool,
-    pub game_window: WindowsGameWindow,
-    pub step_timer: StepTimer,
-
-    pub base: Game,
-
-    pub begin_run_fn: Option<fn() ->Result<(), Exception>>,
-    pub update_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub draw_fn: Option<fn(&GameTime) ->Result<(), Exception>>,
-    pub begin_fn: Option<fn() ->Result<(), Exception>>,
-    pub end_fn: Option<fn() ->Result<(), Exception>>,
-    pub initialize_fn: Option<fn() ->Result<(), Exception>>,
-    pub load_content_fn: Option<fn() ->Result<(), Exception>>,
-}
+use crate::xna::SilentExceptionConverter;
+use std::cell::RefCell;
+use std::ops::Deref;
+use std::rc::Rc;
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
 
 impl Game {
-    pub fn create(&self) -> WindowsGame {
-        WindowsGame {
-            base: self.clone(),
-            ..Default::default()
-        }
-    }
-}
-
-impl WindowsGame {
-    pub fn exit(&self) -> Result<(), Exception> {
-        self.game_window.close()
+    pub fn exit(&mut self) -> Result<(), Exception> {
+        let mut gw = self.game_window.unwrap_ref_or_default_exception()?;
+        gw.borrow_mut().close()
     }
 
     fn start_game_loop(&mut self) -> Result<(), Exception> {
+        self.platform.step_timer = StepTimer::new();
+
         let mut msg = MSG::default();
+        let gw_temp = self.game_window.unwrap_ref_or_default_exception()?.clone();
+        let game_window = gw_temp.borrow();
 
         loop {
-            unsafe{
-                if PeekMessageA(&mut msg, Some(self.game_window.hwnd), 0, 0, PM_REMOVE).as_bool() {
-                    TranslateMessage(&msg);
-                    DispatchMessageA(&msg);
-                } else {
-                    self.tick()?;
-                }
-            }
+            unsafe {
+                // if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).as_bool(){
+                //     let _ = TranslateMessage(&msg);
+                //     let _ = DispatchMessageW(&msg);
+                //
+                //     //TODO: por algum motivo WM_QUIT não é enviado após a janela ser fechada.
+                //     if msg.message == WM_QUIT || msg.message == 0 {
+                //         break;
+                //     }
+                // } else {
+                //     self.tick()?;
+                // }
 
-            if msg.message == WM_QUIT{
-                break;
+                if PeekMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
+                    let _ = TranslateMessage(&msg);
+                    let _ = DispatchMessageW(&msg);
+                } else {
+                    self.tick()?
+                }
+
+                if msg.message == WM_QUIT || msg.message == 0 {
+                    break;
+                }
             }
         }
 
@@ -57,104 +52,170 @@ impl WindowsGame {
     }
 
     fn tick(&mut self) -> Result<(), Exception> {
-        let mut timer = self.step_timer.clone();
+        let mut timer = self.platform.step_timer.clone();
 
-        let mut lambda=  || -> Result<(), Exception> {
-            let elapsed = self.step_timer.get_elapsed_seconds();
-            let total = self.step_timer.get_total_seconds();
+        let mut lambda = || -> Result<(), Exception> {
+            let elapsed = self.platform.step_timer.get_elapsed_seconds();
+            let total = self.platform.step_timer.get_total_seconds();
             let elapsed_time_span = TimeSpan::from_seconds(elapsed as i32)?;
             let total_time_span = TimeSpan::from_seconds(total as i32)?;
-            self.base.current_game_time.elapsed_time = elapsed_time_span;
-            self.base.current_game_time.total_time = total_time_span;
-            self.update(&self.base.current_game_time)?;
+            self.current_game_time.elapsed_time = elapsed_time_span;
+            self.current_game_time.total_time = total_time_span;
+
+            let current_game_time = self.current_game_time.clone();
+            self.update(&current_game_time)?;
 
             Ok(())
         };
 
         timer.tick(&mut lambda)?;
 
-        self.step_timer = timer;
+        self.platform.step_timer = timer;
 
         self.begin_draw()?;
-        self.draw(&self.base.current_game_time)?;
+        let current_game_time = self.current_game_time.clone();
+        self.draw(&current_game_time)?;
         self.end_draw()?;
 
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<(), Exception> {
-        if self.is_running {
-            return Err(Exception::new("", None));
+    pub fn create_window(&mut self) -> Result<(), Exception> {
+        if self.platform.is_running {
+            return Ok(());
         }
 
-        self.base.game_window.as_ref().unwrap().create()?;
+        let mut game_window = self.game_window.unwrap_ref_or_default_exception()?;
+        game_window.borrow_mut().create()?;
 
-        self.initialize()?;
-
-        if self.base.graphics_device.is_none() {
-            return Err(Exception::new("", None))
-        }
-
-        self.is_running = true;
-        self.begin_run()?;
-        self.start_game_loop()?;
+        self.is_window_created = true;
 
         Ok(())
     }
 
-    fn initialize(&self) -> Result<(), Exception> {
-        if self.initialize_fn.is_some() {
-            self.initialize_fn.as_ref().unwrap()()?;
+    pub fn run(&mut self) -> Result<(), Exception> {
+        if self.platform.is_running {
+            return Ok(());
+        }
+
+        if !self.is_window_created {
+            return Err(Exception::new("Window is not running", None));
+        }
+
+        self.initialize()?;
+
+        self.platform.is_running = true;
+
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_begin_run()?;
+        }
+
+        self.start_game_loop()?;
+
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_end_run()?;
+        }
+
+        Ok(())
+    }
+
+    fn initialize(&mut self) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.clone().as_mut().unwrap().borrow_mut().on_initialize()?;
         }
 
         self.load_content()
     }
 
-    fn load_content(&self) -> Result<(), Exception> {
-        if self.load_content_fn.is_some() {
-            self.load_content_fn.as_ref().unwrap()()?;
+    fn load_content(&mut self) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.clone().unwrap().borrow_mut().on_load_content()?;
         }
 
         Ok(())
     }
 
-    fn update(&self, game_time: &GameTime) -> Result<(), Exception> {
-        if self.update_fn.is_some() {
-            self.update_fn.unwrap()(game_time)?
+    fn update(&mut self, game_time: &GameTime) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_update(game_time)?;
         }
 
         Ok(())
     }
 
-    fn begin_draw(&self)-> Result<(), Exception> {
-        if self.begin_fn.is_some() {
-            self.begin_fn.unwrap()()?
+    fn begin_draw(&self) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_begin_draw()?;
         }
 
         Ok(())
     }
 
-    fn draw(&self, game_time: &GameTime)-> Result<(), Exception> {
-        if self.draw_fn.is_some() {
-            self.draw_fn.unwrap()(game_time)?
+    fn draw(&mut self, game_time: &GameTime) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_draw(game_time)?;
+        }
+
+        if self.graphics_device.is_none() {
+            return Ok(());
+        }
+
+        self.graphics_device
+            .unwrap_ref_or_default_exception()?
+            .borrow()
+            .present()?;
+
+        Ok(())
+    }
+
+    fn end_draw(&mut self) -> Result<(), Exception> {
+        if self.handler.is_some() {
+            self.handler.as_ref().unwrap().borrow_mut().on_end_draw()?;
+        }
+
+
+        Ok(())
+    }
+
+    pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), Exception> {
+        let gw_temp = self.game_window.unwrap_ref_or_default_exception()?;
+        let mut game_window = gw_temp.borrow_mut();
+
+        let windows_bounds = game_window.client_bounds();
+
+        if windows_bounds.width != width as i32 || windows_bounds.height != height as i32 {
+            game_window.width = width;
+            game_window.height = height;
+
+            game_window.update()?
         }
 
         Ok(())
     }
 
-    fn end_draw(&self)-> Result<(), Exception> {
-        if self.end_fn.is_some() {
-            self.end_fn.unwrap()()?
-        }
-
-        Ok(())
+    pub fn attach_graphics_device(&mut self, device: Rc<RefCell<GraphicsDevice>>) {
+        self.graphics_device = Some(device);
     }
 
-    fn begin_run(&self)-> Result<(), Exception> {
-        if self.begin_run_fn.is_some() {
-            self.begin_run_fn.unwrap()()?
+    pub fn run_one_frame(&mut self) -> Result<(), Exception> {
+        self.tick()
+    }
+
+    pub fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
+        self.platform.step_timer.reset_elapsed_time()
+    }
+
+    pub fn set_target_elapsed_time(&mut self, value: TimeSpan) {
+        if !self.is_fixed_time_step {
+            return;
         }
 
-        Ok(())
+        self.platform.step_timer.target_elapsed_ticks = value.ticks as u64;
     }
+
+    pub fn set_is_fixed_time_step(&mut self, value: bool) {
+        self.is_fixed_time_step = value;
+        self.platform.step_timer.is_fixed_time_step = value;
+    }
+
 }

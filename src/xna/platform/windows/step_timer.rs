@@ -1,14 +1,31 @@
-use windows::Win32::System::Performance::QueryPerformanceCounter;
-use crate::xna::csharp::Exception;
+use windows::Win32::System::Performance::{QueryPerformanceCounter, QueryPerformanceFrequency};
+use crate::xna::csharp::{Exception};
+use crate::xna::ExceptionConverter;
 use crate::xna::platform::windows::StepTimer;
 
 impl StepTimer {
     pub fn new() ->Self {
-        StepTimer {
+        let mut step_timer = StepTimer {
             is_fixed_time_step: false,
-            target_elapsed_ticks: Self::TICKS_PER_SECOND,
+            target_elapsed_ticks: Self::TICKS_PER_SECOND / 60,
             ..Default::default()
+        };
+
+        unsafe {
+            let freq = QueryPerformanceFrequency(&mut step_timer.frequency);
+
+            if freq.is_err() {
+                step_timer.frequency = 10000000;
+            }
+
+            let counter = QueryPerformanceCounter(&mut step_timer.last_time);
+
+            if counter.is_err() {
+                step_timer.last_time = 83609152182;
+            }
         }
+
+        step_timer
     }
 
     pub fn get_elapsed_ticks(&self) -> u64 {
@@ -31,24 +48,25 @@ impl StepTimer {
         self.frames_per_second
     }
 
+    pub fn get_frame_per_second(&self) -> u32 {
+        return self.frames_per_second;
+    }
+
     pub fn set_target_elapsed_seconds(&mut self, target_elapsed: f64) {
         self.target_elapsed_ticks = Self::seconds_to_ticks(target_elapsed);
     }
 
-    fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
+    pub fn reset_elapsed_time(&mut self) -> Result<(), Exception> {
         unsafe {
-            let query = QueryPerformanceCounter(&mut self.last_time);
+            let query = QueryPerformanceCounter(&mut self.last_time)
+                .unwrap_or_exception("QueryPerfomanceCounter failed.")?;
 
-            match query {
-                Ok(_) => {
-                    self.left_over_ticks = 0;
-                    self.frames_per_second = 0;
-                    self.frames_this_second = 0;
-                    self.second_counter = 0;
-                    Ok(())
-                }
-                Err(_) => Err(Exception::new("", None)),
-            }
+            self.left_over_ticks = 0;
+            self.frames_per_second = 0;
+            self.frames_this_second = 0;
+            self.second_counter = 0;
+
+            Ok(())
         }
     }
 
@@ -56,11 +74,8 @@ impl StepTimer {
         let mut current_time : i64 = 0;
 
         unsafe {
-            let query = QueryPerformanceCounter(&mut current_time);
-
-            if query.is_err() {
-                return Err(Exception::new("QueryPerformanceCounter", None));
-            }
+            let query = QueryPerformanceCounter(&mut current_time)
+                .unwrap_or_exception("QueryPerformanceCounter")?;
         }
 
         let mut time_delta:u64 = (current_time - self.last_time) as u64;

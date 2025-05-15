@@ -6,8 +6,20 @@ pub mod rasterizer_state;
 pub mod sampler_state;
 pub mod swap_chain;
 pub mod graphics_device;
+pub mod display_mode_collection;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
+use crate::xna::framework::game::GraphicsProfile;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsGraphicsAdapter;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsGraphicsAdapterOutput;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsGraphicsDevice;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsPresentationParameters;
+#[cfg(target_os = "windows")]
+use crate::xna::platform::windows::WindowsRenderTarget2D;
 
 pub trait IPackedVector {
     fn to_vector4(&self) -> Vector4;
@@ -26,16 +38,31 @@ pub struct Bgr565 {
 }
 
 #[derive(Default, Eq, PartialEq, Clone)]
+pub struct GraphicsAdapterOutput {
+    pub device_name: String,
+    pub desktop_coordinates: Rectangle,
+    pub attached_to_desktop: bool,
+    pub display_mode_collection: DisplayModeCollection,
+    pub current_display_mode: Option<DisplayMode>,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsAdapterOutput
+}
+
+#[derive(Default, Eq, PartialEq, Clone)]
 pub struct GraphicsAdapter {
     pub index: u32,
     pub description: String,
     pub device_id: u32,
-    pub device_name: String,
     pub is_default: bool,
-    pub monitor_handle: isize,
     pub revision: u32,
     pub sub_system_id: u32,
     pub vendor_id: u32,
+    pub outputs: Vec<GraphicsAdapterOutput>,
+    pub current_output: Option<GraphicsAdapterOutput>,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsAdapter
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -224,6 +251,7 @@ pub struct SamplerStateCollection {
 pub enum SurfaceFormat {
     #[default]
     Color,
+    Unknown,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -262,7 +290,10 @@ pub struct PresentationParameters {
     pub multi_sample_count: u32,
     pub presentation_interval: PresentInterval,
     pub depth_stencil_format: DepthFormat,
-    pub presentation_swap_effect: SwapEffect
+    pub presentation_swap_effect: SwapEffect,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsPresentationParameters
 }
 
 #[derive(Default, PartialEq, Copy, Clone)]
@@ -275,16 +306,19 @@ pub struct Viewport {
     pub max_depth: f32
 }
 
-#[derive(Default, PartialEq, Copy, Clone)]
+#[derive(Default, PartialEq, Clone)]
 pub struct Texture2D {
     pub width: u32,
     pub height: u32,
     pub format: SurfaceFormat,
 }
 
-#[derive(Default, PartialEq, Copy, Clone)]
+#[derive(Default, PartialEq, Clone)]
 pub struct RenderTarget2D {
-    base: Texture2D
+    pub texture: Texture2D,
+
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsRenderTarget2D
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -313,6 +347,11 @@ pub struct DisplayMode {
     pub format: SurfaceFormat,
     pub scanline_order: ScanlineOrder,
     pub scaling: DisplayModeScaling
+}
+
+#[derive(Default, Eq, PartialEq, Clone)]
+pub struct DisplayModeCollection {
+    pub display_modes: Vec<DisplayMode>,
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -359,7 +398,7 @@ pub struct SwapChain {
 
 #[derive(Default, PartialEq, Clone)]
 pub struct GraphicsDevice {
-    pub adapter: GraphicsAdapter,
+    pub adapter: Option<GraphicsAdapter>,
     pub blend_state: BlendState,
     pub depth_stencil_state: DepthStencilState,
     pub rasterizer_state: RasterizerState,
@@ -368,129 +407,8 @@ pub struct GraphicsDevice {
     pub viewport: Viewport,
     pub render_target: RenderTarget2D,
     pub swap_chain: SwapChain,
-}
+    pub graphics_profile: GraphicsProfile,
 
-pub enum DataFormat {
-    Unknown = 0,
-    R32g32b32a32Typeless = 1,
-    R32g32b32a32Float = 2,
-    R32g32b32a32Uint = 3,
-    R32g32b32a32Sint = 4,
-    R32g32b32Typeless = 5,
-    R32g32b32Float = 6,
-    R32g32b32Uint = 7,
-    R32g32b32Sint = 8,
-    R16g16b16a16Typeless = 9,
-    R16g16b16a16Float = 10,
-    R16g16b16a16Unorm = 11,
-    R16g16b16a16Uint = 12,
-    R16g16b16a16Snorm = 13,
-    R16g16b16a16Sint = 14,
-    R32g32Typeless = 15,
-    R32g32Float = 16,
-    R32g32Uint = 17,
-    R32g32Sint = 18,
-    R32g8x24Typeless = 19,
-    D32FloatS8x24Uint = 20,
-    R32FloatX8x24Typeless = 21,
-    X32TypelessG8x24Uint = 22,
-    R10g10b10a2Typeless = 23,
-    R10g10b10a2Unorm = 24,
-    R10g10b10a2Uint = 25,
-    R11g11b10Float = 26,
-    R8g8b8a8Typeless = 27,
-    R8g8b8a8Unorm = 28,
-    R8g8b8a8UnormSrgb = 29,
-    R8g8b8a8Uint = 30,
-    R8g8b8a8Snorm = 31,
-    R8g8b8a8Sint = 32,
-    R16g16Typeless = 33,
-    R16g16Float = 34,
-    R16g16Unorm = 35,
-    R16g16Uint = 36,
-    r16g16_snorm = 37,
-    r16g16_sint = 38,
-    r32_typeless = 39,
-    d32_float = 40,
-    r32_float = 41,
-    r32_uint = 42,
-    r32_sint = 43,
-    r24g8_typeless = 44,
-    d24_unorm_s8_uint = 45,
-    r24_unorm_x8_typeless = 46,
-    x24_typeless_g8_uint = 47,
-    r8g8_typeless = 48,
-    r8g8_unorm = 49,
-    r8g8_uint = 50,
-    r8g8_snorm = 51,
-    r8g8_sint = 52,
-    r16_typeless = 53,
-    r16_float = 54,
-    d16_unorm = 55,
-    r16_unorm = 56,
-    r16_uint = 57,
-    r16_snorm = 58,
-    r16_sint = 59,
-    r8_typeless = 60,
-    r8_unorm = 61,
-    r8_uint = 62,
-    r8_snorm = 63,
-    r8_sint = 64,
-    a8_unorm = 65,
-    r1_unorm = 66,
-    r9g9b9e5_sharedexp = 67,
-    r8g8_b8g8_unorm = 68,
-    g8r8_g8b8_unorm = 69,
-    bc1_typeless = 70,
-    bc1_unorm = 71,
-    bc1_unorm_srgb = 72,
-    bc2_typeless = 73,
-    bc2_unorm = 74,
-    bc2_unorm_srgb = 75,
-    bc3_typeless = 76,
-    bc3_unorm = 77,
-    bc3_unorm_srgb = 78,
-    bc4_typeless = 79,
-    bc4_unorm = 80,
-    bc4_snorm = 81,
-    bc5_typeless = 82,
-    bc5_unorm = 83,
-    bc5_snorm = 84,
-    b5g6r5_unorm = 85,
-    b5g5r5a1_unorm = 86,
-    b8g8r8a8_unorm = 87,
-    b8g8r8x8_unorm = 88,
-    r10g10b10_xr_bias_a2_unorm = 89,
-    b8g8r8a8_typeless = 90,
-    b8g8r8a8_unorm_srgb = 91,
-    b8g8r8x8_typeless = 92,
-    b8g8r8x8_unorm_srgb = 93,
-    bc6h_typeless = 94,
-    bc6h_uf16 = 95,
-    bc6h_sf16 = 96,
-    bc7_typeless = 97,
-    bc7_unorm = 98,
-    bc7_unorm_srgb = 99,
-    ayuv = 100,
-    y410 = 101,
-    y416 = 102,
-    nv12 = 103,
-    p010 = 104,
-    p016 = 105,
-    opaque_420 = 106,
-    yuy2 = 107,
-    y210 = 108,
-    y216 = 109,
-    nv11 = 110,
-    ai44 = 111,
-    ia44 = 112,
-    p8 = 113,
-    a8p8 = 114,
-    b4g4r4a4_unorm = 115,
-    p208 = 130,
-    v208 = 131,
-    v408 = 132,
-    sampler_feedback_min_mip_opaque = 189,
-    sampler_feedback_mip_region_used_opaque = 190,
-    force_uint = 0xffffffff
+    #[cfg(target_os = "windows")]
+    pub platform: WindowsGraphicsDevice
 }

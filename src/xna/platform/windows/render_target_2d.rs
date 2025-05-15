@@ -1,54 +1,46 @@
-use windows::Win32::Graphics::Direct3D11::{ID3D11RenderTargetView, ID3D11Texture2D, D3D11_RENDER_TARGET_VIEW_DESC, D3D11_RENDER_TARGET_VIEW_DESC_0, D3D11_RTV_DIMENSION, D3D11_RTV_DIMENSION_TEXTURE2D, D3D11_TEX2D_RTV, D3D11_TEXTURE2D_DESC};
-use windows::Win32::Graphics::Dxgi::IDXGISwapChain1;
-use crate::xna::framework::graphics::RenderTarget2D;
-use crate::xna::platform::windows::graphics_device::WindowsGraphicsDevice;
-use crate::xna::platform::windows::texture_2d::WindowsTexture2D;
-
-#[derive(Default, Clone)]
-pub struct WindowsRenderTarget2D {
-    pub view: Option<ID3D11RenderTargetView>,
-    pub description: D3D11_RENDER_TARGET_VIEW_DESC,
-    pub base: WindowsTexture2D,
-}
+use crate::xna::framework::graphics::{GraphicsDevice, RenderTarget2D};
+use windows::Win32::Graphics::Direct3D11::{ID3D11Texture2D, D3D11_RENDER_TARGET_VIEW_DESC, D3D11_RTV_DIMENSION, D3D11_RTV_DIMENSION_TEXTURE2D, D3D11_TEXTURE2D_DESC};
+use crate::xna::csharp::{Exception};
+use crate::xna::{ExceptionConverter, SilentExceptionConverter};
 
 impl RenderTarget2D {
-    pub fn from_back_buffer(&self, g_device: &WindowsGraphicsDevice) -> WindowsRenderTarget2D {
-        let swap_chain = g_device.swap_chain.as_ref().unwrap();
+    pub fn from_back_buffer(g_device: &GraphicsDevice) -> Result<RenderTarget2D, Exception> {
+        let swap_chain = g_device.platform.swap_chain.unwrap_ref_or_default_exception()?;
+
         unsafe {
-            let result = swap_chain.GetBuffer::<ID3D11Texture2D>(0).unwrap();
-            let mut result_desc = D3D11_TEXTURE2D_DESC::default();
+            let result = swap_chain.GetBuffer::<ID3D11Texture2D>(0)
+                .unwrap_or_exception("GetBuffer failed")?;
 
-            result.GetDesc(&mut result_desc);
+            let mut target = RenderTarget2D::default();
+            target.platform.texture = Some(result);
 
-            WindowsRenderTarget2D {
-                base: WindowsTexture2D {
-                    texture: Some(result),
-                    ..Default::default()
-                },
-                description: D3D11_RENDER_TARGET_VIEW_DESC {
-                    ViewDimension: D3D11_RTV_DIMENSION_TEXTURE2D,
-                    Format: result_desc.Format,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }
+            Ok(target)
         }
     }
-}
 
-impl WindowsRenderTarget2D {
-    pub fn initialize(&mut self, device: &WindowsGraphicsDevice) {
-        let w_device = device.device.as_ref().unwrap();
-        let resource = self.base.texture.as_ref().unwrap();
-
+    pub fn initialize(&mut self, device: &GraphicsDevice) -> Result<(), Exception> {
         unsafe {
-            w_device.CreateRenderTargetView(resource, Some(&self.description), Some(&mut self.view))
-                .unwrap();
+            let w_device = device.platform.device.unwrap_ref_or_default_exception()?;
+            let resource = self.platform.texture.clone();
+
+            let mut texture_desc = D3D11_TEXTURE2D_DESC::default();
+            resource.unwrap_ref_or_default_exception()?.GetDesc(&mut texture_desc);
+
+            let description = D3D11_RENDER_TARGET_VIEW_DESC {
+                ViewDimension: Self::VIEW_DIMENSION,
+                Format: texture_desc.Format,
+                ..Default::default()
+            };
+
+            w_device.CreateRenderTargetView(resource.as_ref().unwrap(), Some(&description), Some(&mut self.platform.view))
+                .unwrap_or_exception("CreateRenderTargetView failed")?;
 
             let mut description = D3D11_RENDER_TARGET_VIEW_DESC::default();
-            self.view.as_ref().unwrap().GetDesc(&mut description);
+            self.platform.view.as_ref().unwrap().GetDesc(&mut description);
 
-            self.description = description;
+            Ok(())
         }
     }
+
+    pub const VIEW_DIMENSION: D3D11_RTV_DIMENSION = D3D11_RTV_DIMENSION_TEXTURE2D;
 }

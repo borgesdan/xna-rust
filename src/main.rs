@@ -1,128 +1,102 @@
+extern crate core;
+
 mod xna;
 
+use std::cell::{RefCell, RefMut};
+use std::error::Error;
 use std::fmt::Pointer;
-use windows::core::PCWSTR;
-use windows::Win32::Foundation::{HWND, LRESULT, WPARAM, LPARAM, HINSTANCE};
-use windows::Win32::System::LibraryLoader::{GetModuleHandleW};
-use windows::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, LoadCursorW, PostQuitMessage,
-    RegisterClassExW, ShowWindow, TranslateMessage, MSG, WNDCLASSEXW,
-    CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, IDC_ARROW, SW_SHOW, WM_DESTROY, WM_PAINT,
-    WM_QUIT, WS_OVERLAPPEDWINDOW, WINDOW_EX_STYLE};
-
-use crate::xna::framework::{Color, Point};
-use crate::xna::csharp::forms::Screen;
-use crate::xna::framework::game::{GameWindow, GameWindowStyle};
-use crate::xna::framework::graphics::{GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat, SwapEffect};
+use std::rc::Rc;
+use crate::xna::csharp::Exception;
+use crate::xna::framework::Color;
+use crate::xna::framework::game::{Game, GameHandler, GameTime, GraphicsDeviceManager};
 
 fn main() {
+    let mut game = Rc::new(RefCell::new(Game::new()));
+    let mut graphics_device_manager = Rc::new(RefCell::new(GraphicsDeviceManager::new(Some(game.clone()))));
 
-    // let g_device = GraphicsDevice::new();
-    // let mut device = g_device.create();
-    // let window = GameWindow::create_window(Point{ x: 800, y: 600}, GameWindowStyle::Windowed, "Teste" ).unwrap();
-    //
-    // device.base.presentation_parameters = PresentationParameters {
-    //     back_buffer_format: SurfaceFormat::Color,
-    //     back_buffer_height: 600,
-    //     back_buffer_width: 800,
-    //     is_full_screen: false,
-    //     presentation_swap_effect: SwapEffect::FlipDiscard,
-    //
-    //     ..Default::default()
-    // };
-    //
-    // device.parameters.hwnd = window.hwnd;
-    //
-    // device.initialize();
+    let mut game1 = Rc::new(RefCell::new(Game1 {
+        graphics_device_manager: graphics_device_manager.clone(),
+        game: game.clone(),
+    }));
 
-    let mut msg = MSG::default();
-    unsafe {
-        while GetMessageW(&mut msg, None, 0, 0).into() {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
+    create_window(game.clone());
+    apply_graphics_device_manager(graphics_device_manager.clone());
 
-            if msg.message == WM_QUIT {
-                break;
-            }
-        }
-    }
-return;
+    let mut borrow = game.borrow_mut();
+    borrow.handler = Some(game1.clone());
+    let result = borrow.run();
 
-
-
-    unsafe {
-        // Nome da classe da janela
-        let class_name = to_wide("MinhaJanelaClass");
-
-        // Obter instância do programa
-        let h_module = GetModuleHandleW(None).unwrap();
-        let h_instance = HINSTANCE::from(h_module);
-
-        // Definir classe da janela
-        let wnd_class = WNDCLASSEXW {
-            cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
-            style: CS_HREDRAW | CS_VREDRAW,
-            lpfnWndProc: Some(wnd_proc1), // Ponteiro para o callback de eventos da janela
-            hInstance: h_instance.into(),
-            lpszClassName: PCWSTR(class_name.as_ptr()),
-            hCursor: LoadCursorW(None, IDC_ARROW).unwrap(),
-            //hbrBackground: HBRUSH(16), // Cor de fundo padrão
-            ..Default::default()
-        };
-
-        // Registrar a classe da janela
-        let result = RegisterClassExW(&wnd_class);
-
-        // Criar a janela
-        let hwnd = CreateWindowExW(
-            WINDOW_EX_STYLE::default(),
-            PCWSTR(class_name.as_ptr()),
-            PCWSTR(to_wide("Minha Primeira Janela!").as_ptr()),
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            800, // Largura
-            600, // Altura
-            None,
-            None,
-            Some(h_instance),
-            None,
-        ).unwrap();
-
-        // Exibir a janela
-        ShowWindow(hwnd, SW_SHOW);
-
-        // Loop de mensagens
-        let mut msg = MSG::default();
-        while GetMessageW(&mut msg, None, 0, 0).into() {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-
-            if msg.message == WM_QUIT {
-                break;
-            }
-        }
+    if result.is_err() {
+        let error = result.err().unwrap();
+        println!("{}", error.message);
+        std::process::exit(1);
     }
 }
 
-//Função de processamento de mensagens da janela (WndProc)
-extern "system" fn wnd_proc1(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-    unsafe {
-        match msg {
-            WM_PAINT => {
-                // Aqui poderia ser feito o desenho da janela, se necessário
-                LRESULT(0)
-            }
-            WM_DESTROY => {
-                PostQuitMessage(0);
-                LRESULT(0)
-            }
-            _ => DefWindowProcW(hwnd, msg, wparam, lparam),
-        }
+fn create_window(game: Rc<RefCell<Game>>) {
+    let mut borrow = game.borrow_mut();
+    let result = borrow.create_window();
+    drop(borrow);
+
+    if result.is_err() {
+        let error = result.err().unwrap();
+        println!("{}", error.message);
+        std::process::exit(1);
     }
 }
 
-//unção para converter string Rust (&str) para UTF-16
-fn to_wide(s: &str) -> Vec<u16> {
-    s.encode_utf16().chain(std::iter::once(0)).collect()
+fn apply_graphics_device_manager(graphics_device_manager: Rc<RefCell<GraphicsDeviceManager>>) {
+    let mut device_borrow = graphics_device_manager.borrow_mut();
+    let result = device_borrow.apply_changes();
+    drop(device_borrow);
+
+    if result.is_err() {
+        let error = result.err().unwrap();
+        println!("{}", error.message);
+        std::process::exit(1);
+    }
 }
+
+struct Game1 {
+    pub graphics_device_manager: Rc<RefCell<GraphicsDeviceManager>>,
+    pub game: Rc<RefCell<Game>>,
+}
+
+impl GameHandler for Game1 {
+    fn on_begin_run(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_end_run(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_update(&mut self, game_time: &GameTime) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_draw(&mut self, game_time: &GameTime) -> Result<(), Exception> {
+        let manager = self.graphics_device_manager.borrow_mut();
+        let device = manager.graphics_device.as_ref().unwrap().borrow_mut();
+        device.clear(Color::cornflower_blue())?;
+
+        Ok(())
+    }
+
+    fn on_begin_draw(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_end_draw(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_initialize(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+
+    fn on_load_content(&mut self) -> Result<(), Exception> {
+        Ok(())
+    }
+}
+
