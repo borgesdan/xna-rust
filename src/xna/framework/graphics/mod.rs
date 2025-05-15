@@ -10,16 +10,11 @@ pub mod display_mode_collection;
 
 use crate::xna::framework::{Color, Rectangle, Vector4};
 use crate::xna::framework::game::GraphicsProfile;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsGraphicsAdapter;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsGraphicsAdapterOutput;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsGraphicsDevice;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsPresentationParameters;
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsRenderTarget2D;
+use crate::xna::platform::PlatformGraphicsAdapter;
+use crate::xna::platform::PlatformGraphicsAdapterOutput;
+use crate::xna::platform::PlatformGraphicsDevice;
+use crate::xna::platform::PlatformPresentationParameters;
+use crate::xna::platform::PlatformRenderTarget2D;
 
 pub trait IPackedVector {
     fn to_vector4(&self) -> Vector4;
@@ -45,8 +40,7 @@ pub struct GraphicsAdapterOutput {
     pub display_mode_collection: DisplayModeCollection,
     pub current_display_mode: Option<DisplayMode>,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGraphicsAdapterOutput
+    pub platform: PlatformGraphicsAdapterOutput
 }
 
 #[derive(Default, Eq, PartialEq, Clone)]
@@ -61,8 +55,7 @@ pub struct GraphicsAdapter {
     pub outputs: Vec<GraphicsAdapterOutput>,
     pub current_output: Option<GraphicsAdapterOutput>,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGraphicsAdapter
+    pub platform: PlatformGraphicsAdapter
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -292,8 +285,7 @@ pub struct PresentationParameters {
     pub depth_stencil_format: DepthFormat,
     pub presentation_swap_effect: SwapEffect,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsPresentationParameters
+    pub platform: PlatformPresentationParameters
 }
 
 #[derive(Default, PartialEq, Copy, Clone)]
@@ -317,8 +309,7 @@ pub struct Texture2D {
 pub struct RenderTarget2D {
     pub texture: Texture2D,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsRenderTarget2D
+    pub platform: PlatformRenderTarget2D
 }
 
 #[derive(Default, Eq, PartialEq, Copy, Clone)]
@@ -409,6 +400,5 @@ pub struct GraphicsDevice {
     pub swap_chain: SwapChain,
     pub graphics_profile: GraphicsProfile,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGraphicsDevice
+    pub platform: PlatformGraphicsDevice
 }

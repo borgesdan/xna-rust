@@ -1,9 +1,7 @@
 pub mod screen;
 
 use crate::xna::csharp::Rectangle;
-
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::WindowsScreen;
+use crate::xna::platform::PlatformScreen;
 
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Screen {
@@ -13,8 +11,7 @@ pub struct Screen {
     pub working_area: Rectangle,
     pub bit_depth: i32,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsScreen
+    pub platform: PlatformScreen
 }
 
 pub struct SystemInformation;

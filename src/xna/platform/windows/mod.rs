@@ -9,8 +9,9 @@ pub mod graphics_adapter;
 pub mod screen;
 pub mod system_information;
 
-use crate::xna::csharp::{Exception};
+use crate::xna::csharp::Exception;
 use crate::xna::framework::graphics::{Blend, BlendFunction, BlendState, ColorWriteChannels, ComparisonFunction, CullMode, DepthFace, DepthStencilState, DisplayMode, DisplayModeScaling, FillMode, IPackedVector, RasterizerState, SamplerState, ScanlineOrder, StencilOperation, SurfaceFormat, SurfaceUsage, SwapChain, SwapChainFlag, SwapEffect, TextureAddressMode, TextureFilter};
+use crate::xna::ExceptionConverter;
 use windows::core::{Error, BOOL};
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D::D3D_FEATURE_LEVEL;
@@ -18,8 +19,6 @@ use windows::Win32::Graphics::Direct3D11::{ID3D11BlendState, ID3D11DepthStencilS
 use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_MODE_DESC, DXGI_MODE_SCALING, DXGI_MODE_SCALING_CENTERED, DXGI_MODE_SCALING_STRETCHED, DXGI_MODE_SCALING_UNSPECIFIED, DXGI_MODE_SCANLINE_ORDER, DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST, DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE, DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED, DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST, DXGI_RATIONAL, DXGI_SAMPLE_DESC};
 use windows::Win32::Graphics::Dxgi::{IDXGIAdapter, IDXGIFactory, IDXGIOutput, IDXGISwapChain, DXGI_SWAP_CHAIN_DESC, DXGI_SWAP_CHAIN_FLAG, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING, DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY, DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT, DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE, DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED, DXGI_SWAP_CHAIN_FLAG_NONPREROTATED, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT, DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS, DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER, DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO, DXGI_SWAP_EFFECT, DXGI_SWAP_EFFECT_DISCARD, DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL, DXGI_SWAP_EFFECT_SEQUENTIAL, DXGI_USAGE, DXGI_USAGE_BACK_BUFFER, DXGI_USAGE_DISCARD_ON_PRESENT, DXGI_USAGE_READ_ONLY, DXGI_USAGE_RENDER_TARGET_OUTPUT, DXGI_USAGE_SHADER_INPUT, DXGI_USAGE_SHARED, DXGI_USAGE_UNORDERED_ACCESS};
 use windows::Win32::Graphics::Gdi::HMONITOR;
-use crate::xna::ExceptionConverter;
-use crate::xna::framework::game::GameWindowStyle;
 
 impl<T> ExceptionConverter<T> for Result<T, Error> {
     fn unwrap_or_exception(self, message: &str) -> Result<T, Exception> {

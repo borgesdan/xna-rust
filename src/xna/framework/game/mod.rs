@@ -2,17 +2,15 @@ pub mod game;
 pub mod game_window;
 pub mod graphics_device_manager;
 
-use std::cell::RefCell;
-use std::cmp::Ordering;
 use crate::xna::csharp::{Exception, TimeSpan};
 use crate::xna::framework::graphics::{DepthFormat, GraphicsAdapter, GraphicsDevice, PresentationParameters, SurfaceFormat};
+use std::cell::RefCell;
+use std::cmp::Ordering;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use thiserror::Error;
 
-#[cfg(target_os = "windows")]
-use crate::xna::platform::windows::{WindowsGame, WindowsGameWindow};
+use crate::xna::platform::PlatformGame;
+use crate::xna::platform::PlatformGameWindow;
 
 pub enum DisplayOrientation {
     Default,
@@ -20,7 +18,6 @@ pub enum DisplayOrientation {
     LandscapeRight,
     Portrait,
 }
-
 
 #[derive(Default, PartialEq, Eq, Copy, Clone)]
 pub enum GameWindowStyle {
@@ -39,8 +36,7 @@ pub struct GameWindow {
     pub title: String,
     pub style: GameWindowStyle,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGameWindow
+    pub platform: PlatformGameWindow
 }
 
 #[derive(Default, PartialEq, Eq, Copy, Clone)]
@@ -73,8 +69,7 @@ pub struct Game {
 
     pub is_window_created: bool,
 
-    #[cfg(target_os = "windows")]
-    pub platform: WindowsGame
+    pub platform: PlatformGame
 }
 
 #[derive(Default, Clone)]
