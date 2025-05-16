@@ -4,9 +4,8 @@ use crate::xna::framework::graphics::GraphicsDevice;
 use crate::xna::platform::windows::StepTimer;
 use crate::xna::SilentExceptionConverter;
 use std::cell::RefCell;
-use std::ops::Deref;
 use std::rc::Rc;
-use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, GetMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
+use windows::Win32::UI::WindowsAndMessaging::{DispatchMessageW, IsWindow, PeekMessageW, TranslateMessage, MSG, PM_REMOVE, WM_QUIT};
 
 impl Game {
     pub fn exit(&mut self) -> Result<(), Exception> {
@@ -23,18 +22,6 @@ impl Game {
 
         loop {
             unsafe {
-                // if GetMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0).as_bool(){
-                //     let _ = TranslateMessage(&msg);
-                //     let _ = DispatchMessageW(&msg);
-                //
-                //     //TODO: por algum motivo WM_QUIT não é enviado após a janela ser fechada.
-                //     if msg.message == WM_QUIT || msg.message == 0 {
-                //         break;
-                //     }
-                // } else {
-                //     self.tick()?;
-                // }
-
                 if PeekMessageW(&mut msg, Some(game_window.platform.hwnd), 0, 0, PM_REMOVE).as_bool() {
                     let _ = TranslateMessage(&msg);
                     let _ = DispatchMessageW(&msg);
@@ -42,7 +29,7 @@ impl Game {
                     self.tick()?
                 }
 
-                if msg.message == WM_QUIT || msg.message == 0 {
+                if msg.message == WM_QUIT || msg.message == 0 || !IsWindow(Some(game_window.platform.hwnd)).as_bool() {
                     break;
                 }
             }
