@@ -3,8 +3,12 @@ pub mod time_span;
 pub mod io;
 pub mod buffer;
 pub mod array;
+pub mod exception;
+pub mod rectangle;
+pub mod hresult;
 
-use std::str;
+use std::error;
+use std::error::Error;
 use thiserror::Error;
 
 #[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
@@ -20,50 +24,17 @@ pub struct TimeSpan {
     pub ticks: i64,
 }
 
-#[derive(Error, Debug, Default, Eq, PartialEq, Clone)]
+#[derive(Error, Debug, Default)]
 #[error("{h_result}: {message}")]
 pub struct Exception {
     pub message: String,
     pub inner: Option<Box<Exception>>,
-    pub h_result: isize,
+    pub h_result: i64,
 }
 
 pub struct Buffer;
 pub struct Array;
 
-impl Exception {
-    pub fn new(message: &str, inner: Option<Exception>) -> Self {
-        Self::create(message, 0x80131500, inner)
-    }
+pub struct HResult(pub i64);
 
-    pub fn out_of_range(message: &str, inner: Option<Exception>) -> Self {
-        Self::create(message, 0x80004003, inner)
-    }
 
-    pub fn invalid_operation(message: &str, inner: Option<Exception>) -> Self{
-        Self::create(message, 0x0, inner)
-    }
-
-    pub fn argument_exception(message: &str, inner: Option<Exception>) -> Self{
-        Self::create(message, 0x0, inner)
-    }
-
-    pub fn create(message: &str, h_result: isize, inner: Option<Exception>) -> Self {
-        Exception {
-            message: message.to_string(),
-            inner: if inner.is_some() { Some(Box::new(inner.unwrap())) } else { None },
-            h_result, //E_POINTER
-        }
-    }
-}
-
-impl Rectangle {
-    pub fn from_ltrb(left: i32, top: i32, right: i32, bottom: i32) -> Self {
-        Rectangle{
-            x: left,
-            y: top,
-            width: right - left,
-            height: bottom - top
-        }
-    }
-}

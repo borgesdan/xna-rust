@@ -103,11 +103,11 @@ impl StreamHelper {
 
     pub fn validate_buffer_arguments(buffer: &[u8], offset: i32, count: i32) -> Result<(), Exception> {
         if offset < 0 {
-            return Err(Exception::argument_exception("Offset cannot be less than 0", None));
+            return Err(Exception::new("Offset cannot be less than 0", None));
         }
 
         if count as usize > buffer.len() - offset as usize {
-            return Err(Exception::argument_exception("Count cannot be less than buffer.len() - offset", None));
+            return Err(Exception::new("Count cannot be less than buffer.len() - offset", None));
         }
 
         Ok(())
@@ -115,11 +115,11 @@ impl StreamHelper {
 
     pub fn validate_read_at_least_arguments(buffer_length: i32, minimum_bytes: i32) -> Result<(), Exception> {
         if minimum_bytes < 0 {
-            return Err(Exception::argument_exception("minimum_bytes cannot be less than 0", None));
+            return Err(Exception::new("minimum_bytes cannot be less than 0", None));
         }
 
         if buffer_length < minimum_bytes {
-            return Err(Exception::argument_exception("buffer_length cannot be less than minimum_bytes", None));
+            return Err(Exception::new("buffer_length cannot be less than minimum_bytes", None));
         }
 
         Ok(())

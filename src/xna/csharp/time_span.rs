@@ -14,7 +14,7 @@ impl TimeSpan {
             + microseconds as i64;
 
         if total_micro_seconds > Self::MAX_MICROSECONDS || total_micro_seconds < Self::MIN_MICROSECONDS {
-            return Err(Exception::out_of_range("TimeSpan overflowed because the duration is too long", None));
+            return Err(Exception::new("TimeSpan overflowed because the duration is too long", None));
         }
 
         Ok(TimeSpan { ticks: total_micro_seconds * Self::TICKS_PER_MICROSECOND})
@@ -125,7 +125,7 @@ impl TimeSpan {
 
     pub fn duration(&self) -> Result<Self, Exception> {
         if self.ticks == Self::MIN_TICKS {
-            return Err(Exception::out_of_range("The duration cannot be returned for TimeSpan.MinValue because the absolute value of TimeSpan.MinValue exceeds the value of TimeSpan.MaxValue.", None));
+            return Err(Exception::new("The duration cannot be returned for TimeSpan.MinValue because the absolute value of TimeSpan.MinValue exceeds the value of TimeSpan.MaxValue.", None));
         }
 
         Ok(TimeSpan {ticks: if self.ticks >= 0 { self.ticks} else { -self.ticks}})
@@ -161,7 +161,7 @@ impl TimeSpan {
 
     fn from_units(units: i64, ticks_per_unit: i64, min_units: i64, max_units: i64) -> Result<TimeSpan, Exception> {
         if units > max_units || units < min_units {
-            return Err(Exception::out_of_range("TimeSpan overflowed because the duration is too long.", None));
+            return Err(Exception::new("TimeSpan overflowed because the duration is too long.", None));
         }
 
         Ok(TimeSpan::from_ticks(units * ticks_per_unit))
@@ -173,7 +173,7 @@ impl TimeSpan {
 
     fn interval_from_double_ticks(ticks: f64) -> Result<Self, Exception> {
         if ticks > Self::MAX_TICKS as f64 || ticks < Self::MIN_TICKS as f64 {
-            return Err(Exception::out_of_range("TimeSpan overflowed because the duration is too long", None));
+            return Err(Exception::new("TimeSpan overflowed because the duration is too long", None));
         }
 
         if ticks == Self::MAX_TICKS as f64 {

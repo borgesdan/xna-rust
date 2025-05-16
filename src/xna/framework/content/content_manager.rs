@@ -31,7 +31,7 @@
 //
 //     fn load<T>(&mut self, asset_name: &str) -> Result<Option<T>, Exception> {
 //         if asset_name.is_empty() {
-//             return Err(Exception::argument_exception("Asset name is empty.", None));
+//             return Err(Exception::new("Asset name is empty.", None));
 //         }
 //
 //         let obj3 = self.read_asset(asset_name)?;

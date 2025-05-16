@@ -29,7 +29,7 @@ impl<T> ExceptionConverter<T> for Result<T, Error> {
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
         let h_result = error.code();
-        let exception = Exception::create(message, h_result.0 as isize,  Some(inner));
+        let exception = Exception::new_with_hresult(message, h_result.0 as i64, Some(inner));
 
         Err(exception)
     }
@@ -42,7 +42,7 @@ impl<T> ExceptionConverter<T> for Result<T, Error> {
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
         let h_result = error.code();
-        let exception = Exception::create(message, h_result.0 as isize,  Some(inner));
+        let exception = Exception::new_with_hresult(message, h_result.0 as i64, Some(inner));
 
         Err(exception)
     }
@@ -55,7 +55,7 @@ impl<T> ExceptionConverter<T> for Result<T, Error> {
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
         let h_result = error.code();
-        let exception = Exception::create(message, h_result.0 as isize,  Some(inner));
+        let exception = Exception::new_with_hresult(message, h_result.0 as i64, Some(inner));
 
         Err(exception)
     }
@@ -139,7 +139,7 @@ impl From<Error> for Exception {
         let message = value.message();
         let code = value.code();
 
-        Exception::create(message.as_str(), code.0 as isize, None)
+        Exception::new_with_hresult(message.as_str(), code.0 as i64, None)
     }
 }
 

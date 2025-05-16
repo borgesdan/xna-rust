@@ -88,7 +88,7 @@ impl<T> ExceptionConverter<T> for Result<T, std::io::Error>{
 
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
-        let exception = Exception::create(message, 0isize, Some(inner));
+        let exception = Exception::new_with_hresult(message, 0, Some(inner));
 
         Err(exception)
     }
@@ -100,7 +100,7 @@ impl<T> ExceptionConverter<T> for Result<T, std::io::Error>{
 
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
-        let exception = Exception::create(message, 0isize, Some(inner));
+        let exception = Exception::new_with_hresult(message, 0, Some(inner));
 
         Err(exception)
     }
@@ -112,7 +112,7 @@ impl<T> ExceptionConverter<T> for Result<T, std::io::Error>{
 
         let error = self.as_ref().err().unwrap();
         let inner = Exception::from(error.clone());
-        let exception = Exception::create(message, 0isize, Some(inner));
+        let exception = Exception::new_with_hresult(message, 0, Some(inner));
 
         Err(exception)
     }
@@ -123,7 +123,7 @@ impl From<std::io::Error> for Exception {
         let message = value.to_string();
         let code = 0;
 
-        Exception::create(message.as_str(), code as isize, None)
+        Exception::new_with_hresult(message.as_str(), code, None)
     }
 }
 
@@ -132,6 +132,6 @@ impl From<&std::io::Error> for Exception {
         let message = value.to_string();
         let code = 0;
 
-        Exception::create(message.as_str(), code as isize, None)
+        Exception::new_with_hresult(message.as_str(), code, None)
     }
 }

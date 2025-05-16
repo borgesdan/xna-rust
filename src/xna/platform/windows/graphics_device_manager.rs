@@ -232,7 +232,7 @@ impl GraphicsDeviceManager{
 
         if parameters.platform.hwnd.is_invalid() {
             if self.game.is_none() {
-                return Err(Exception::invalid_operation("Graphics component not attached to game", None));
+                return Err(Exception::new("Graphics component not attached to game", None));
             }
 
             let hwnd = self.game
@@ -255,7 +255,7 @@ impl GraphicsDeviceManager{
             if result.is_err() {
                 let inner = Exception::new(result.err().unwrap().message().as_str(), None);
 
-                return Err(Exception::invalid_operation("Graphics component not attached to game", Some(inner)));
+                return Err(Exception::new("Graphics component not attached to game", Some(inner)));
             }
         }
 
@@ -279,7 +279,7 @@ impl GraphicsDeviceManager{
         }
 
         if presentation_parameters.back_buffer_height == 0 || presentation_parameters.back_buffer_width == 0 {
-            return Err(Exception::argument_exception("Validate backbuffer full screen fail", None));
+            return Err(Exception::new("Validate backbuffer full screen fail", None));
         }
 
         let mut flag = true;
@@ -302,7 +302,7 @@ impl GraphicsDeviceManager{
         }
 
         if !flag{
-            return Err(Exception::argument_exception("Validate backbuffer full screen fail", None));
+            return Err(Exception::new("Validate backbuffer full screen fail", None));
         }
 
         Ok(())

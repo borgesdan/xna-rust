@@ -9,7 +9,7 @@ impl SwapChain {
         desc.OutputWindow = device.presentation_parameters.platform.hwnd.clone();
 
         if desc.OutputWindow.is_invalid() {
-            return Err(Exception::argument_exception("The device.presentation_parameters.platform.hwnd is invalid.", None));
+            return Err(Exception::new("The device.presentation_parameters.platform.hwnd is invalid.", None));
         }
 
         let factory = device.platform.factory.unwrap_ref_or_default_exception()?;
