@@ -5,6 +5,7 @@ pub mod vector;
 pub mod point;
 mod rectangle;
 pub mod content;
+pub mod title_container;
 
 #[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Point {
@@ -101,3 +102,6 @@ pub struct BoundingBox {
 #[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub struct BoundingFrustum {
 }
+
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+struct TitleContainer;

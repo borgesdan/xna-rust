@@ -8,6 +8,7 @@ use std::fmt::Pointer;
 use std::rc::Rc;
 use crate::xna::csharp::Exception;
 use crate::xna::framework::Color;
+use crate::xna::framework::content::ContentManager;
 use crate::xna::framework::game::{Game, GameHandler, GameTime, GraphicsDeviceManager};
 
 fn main() {

@@ -12,4 +12,6 @@ trait IContentManager {
 #[derive(Debug, Default, Eq, PartialEq, Clone)]
 pub struct ContentManager {
     root_directory: String,
+    full_root_directory: String,
+    is_root_directory_absolute: bool,
 }

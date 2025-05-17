@@ -1,5 +1,5 @@
 use crate::xna::csharp::Exception;
-use crate::xna::csharp::io::{FileHelper, FileMode, FileStream};
+use crate::xna::csharp::io::{FileAccess, FileHelper, FileMode, FileStream};
 use crate::xna::ExceptionConverter;
 
 impl FileHelper {
@@ -18,5 +18,9 @@ impl FileHelper {
 
     pub fn open(path: &str, mode: FileMode) -> Result<FileStream, Exception> {
         FileStream::new(path, mode)
+    }
+
+    pub fn open_read(path: &str) -> Result<FileStream, Exception> {
+        FileStream::new_with_access(path, FileMode::Open, FileAccess::Read)
     }
 }
