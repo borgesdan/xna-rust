@@ -1,4 +1,3 @@
-use std::error::Error;
 use crate::xna::csharp::{Exception, HResult};
 
 impl Exception {

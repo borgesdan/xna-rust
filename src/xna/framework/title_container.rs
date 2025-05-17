@@ -18,11 +18,11 @@ impl TitleContainer {
         let name1 = if !name.is_empty() {
             Self::get_clean_path(name)
         } else  {
-            Err(Exception::new("TitleContainer::open_stream - The argument 'name' cannot be empty", None))
+            Err(Exception::new("The argument 'name' cannot be empty", None))
         };
 
         let executable_dir = Self::get_executable_dir()
-            .unwrap_or_exception("TitleContainer::open_stream - Error getting current directory of executable.")?;
+            .unwrap_or_exception("Error getting current directory of executable.")?;
 
         let path1 = executable_dir.to_str().unwrap();
 
@@ -41,7 +41,7 @@ impl TitleContainer {
         while path.starts_with(".\\") {
             let len = ".\\".len();
             path = path.get(len..)
-                .unwrap_or_exception("Error in TitleContainer::get_clean_path. Error getting a substring for a string starting with '.\\'.")?
+                .unwrap_or_exception("Error getting a substring for a string starting with '.\\'.")?
                 .to_string();
         }
 
@@ -51,7 +51,7 @@ impl TitleContainer {
                 "\\".to_string()
             } else {
                 path.get(0..path.len() - len)
-                    .unwrap_or_exception("Error in TitleContainer::get_clean_path. Error getting a substring for a string ending with '\\.'.")?
+                    .unwrap_or_exception("Error getting a substring for a string ending with '\\.'.")?
                     .to_string()
             }
         }
@@ -89,7 +89,7 @@ impl TitleContainer {
     fn collapse_parent_directory(path: &mut String, position: usize, remove_length: usize) -> Result<usize, Exception> {
         let start_index = &path[position - 1..]
             .rfind('\\')
-            .unwrap_or_exception("TitleContainer::collapse_parent_directory - Error finding last index of character '\\'")?
+            .unwrap_or_exception("Error finding last index of character '\\'")?
             + 1;
 
         let p1 = &mut path[position - start_index + remove_length..].to_string();
