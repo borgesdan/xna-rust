@@ -15,3 +15,8 @@ pub struct ContentManager {
     full_root_directory: String,
     is_root_directory_absolute: bool,
 }
+
+#[derive(Debug, Default, Eq, PartialEq, Clone)]
+pub struct ContentReader {
+
+}

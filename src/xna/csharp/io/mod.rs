@@ -1,10 +1,10 @@
 pub mod stream;
 pub mod memory_stream;
 mod file_stream;
-mod file;
+pub mod file;
+pub mod binary_reader;
 
 use std::fs::File;
-use windows::core::Error;
 use crate::xna::csharp::Exception;
 use crate::xna::ExceptionConverter;
 
@@ -96,8 +96,20 @@ pub struct FileStream {
     is_open: bool,
 }
 
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
 pub struct FileHelper;
+
+pub trait IBinaryReader {
+    fn close(&mut self) -> Result<(), Exception>;
+    fn peek_char(&mut self) -> Result<i32, Exception>;
+
+    fn read(&mut self)-> Result<i32, Exception>;
+}
+
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
+pub struct BinaryReader<T> where T : Stream {
+    stream : Option<T>,
+    leave_open: bool,
+}
 
 impl<T> ExceptionConverter<T> for Result<T, std::io::Error>{
     fn unwrap_or_exception(self, message: &str) -> Result<T, Exception> {

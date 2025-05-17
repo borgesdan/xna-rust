@@ -12,11 +12,16 @@ impl ContentManager{
         }
     }
 
-    // fn read_asset<T>(&self, asset_name: &str) -> Result<Option<T>, Exception> {
-    //
-    // }
-    //
-    // fn open_stream(asset_name: &str) -> Result<Stre, Exception> {}
+    fn read_asset<T>(&self, asset_name: &str) -> Result<Option<T>, Exception> {
+        if asset_name.is_empty() {
+            return Err(Exception::new("The asset name cannot be empty.", None));
+        }
+
+        let input = self.open_stream(asset_name)?;
+        //TODO
+
+        Ok(None)
+    }
 
     pub fn open_stream(&self, asset_name: &str) -> Result<FileStream, Exception> {
         let path = Path::new(self.root_directory.as_str());
