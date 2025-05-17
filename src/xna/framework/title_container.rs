@@ -29,7 +29,7 @@ impl TitleContainer {
         let path2 = Path::new(path1);
         let path3 = path2.join(name);
 
-        let full_path = path3.to_str().unwrap();
+        let full_path = path3.to_str().unwrap_or_exception("Error containing file path.")?;
 
         FileHelper::open_read(full_path)
     }
