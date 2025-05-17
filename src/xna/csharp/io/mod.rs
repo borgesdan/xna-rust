@@ -32,7 +32,6 @@ pub trait Stream {
     fn write(&mut self, buffer: &[u8], offset: i32, count: i32) -> Result<(), Exception>;
     fn write_byte(&mut self, value: u8)-> Result<(), Exception>;
     fn copy_to(&mut self, destination: &mut dyn Stream, buffer_size: i32) -> Result<(), Exception>;
-    fn write_to(&mut self, stream: &mut dyn Stream) -> Result<(), Exception>;
 }
 
 #[derive(Debug, Default, Eq, PartialEq, Clone, Copy)]
@@ -72,9 +71,29 @@ pub enum FileMode
     Append = 6,
 }
 
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
+pub enum FileAccess
+{
+    /// Specifies read access to the file. Data can be read from the file and
+    /// the file pointer can be moved. Combine with WRITE for read-write access.
+    #[default]
+    Read = 1,
+
+    /// Specifies write access to the file. Data can be written to the file and
+    /// the file pointer can be moved. Combine with READ for read-write access.
+    Write = 2,
+
+    /// Specifies read and write access to the file. Data can be written to the
+    /// file and the file pointer can be moved. Data can also be read from the
+    /// file.
+    ReadWrite = 3,
+}
+
 #[derive(Debug, Default)]
 pub struct FileStream {
     file: Option<File>,
+    access: FileAccess,
+    is_open: bool,
 }
 
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]

@@ -154,6 +154,13 @@ impl MemoryStream {
         Ok(n)
     }
 
+    fn write_to(&mut self, stream: &mut dyn Stream) -> Result<(), Exception> {
+        self.ensure_not_close()?;
+
+        let slice = self.buffer.as_slice();
+        stream.write(slice, self.origin, self.length - self.origin)
+    }
+
     pub const MEM_STREAM_MAX_LENGTH : i32 = i32::MAX;
 }
 
@@ -395,12 +402,5 @@ impl Stream for MemoryStream {
         }
 
         Ok(())
-    }
-
-    fn write_to(&mut self, stream: &mut dyn Stream) -> Result<(), Exception> {
-        self.ensure_not_close()?;
-
-        let slice = self.buffer.as_slice();
-        stream.write(slice, self.origin, self.length - self.origin)
     }
 }
