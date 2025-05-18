@@ -5,6 +5,18 @@ pub mod framework;
 pub mod csharp;
 pub mod platform;
 
+pub fn pointer_to_numeric<T>(ptr: *const u8) -> Result<T, Exception> {
+    unsafe {
+        if !ptr.is_null() && (ptr as usize) % align_of::<T>() == 0 {
+            let value = ptr.cast::<T>().read_unaligned();
+            Ok(value)
+        }
+        else {
+            Err(Exception::new("Error reading numeric.", None))
+        }
+    }
+}
+
 trait ToWide {
     fn to_wide(&self) -> Vec<u16>;
 }

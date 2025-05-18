@@ -103,12 +103,18 @@ pub trait IBinaryReader {
     fn peek_char(&mut self) -> Result<i32, Exception>;
 
     fn read(&mut self)-> Result<i32, Exception>;
+    fn read_byte(&mut self)-> Result<u8, Exception>;
+    fn read_sbyte(&mut self)-> Result<i8, Exception>;
+    fn read_boolean(&mut self)-> Result<bool, Exception>;
+    fn read_char(&mut self)-> Result<char, Exception>;
+    fn read_int16(&mut self)-> Result<i16, Exception>;
 }
 
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
 pub struct BinaryReader<T> where T : Stream {
     stream : Option<T>,
     leave_open: bool,
+    internal_buffer: [u8;16],
 }
 
 impl<T> ExceptionConverter<T> for Result<T, std::io::Error>{
